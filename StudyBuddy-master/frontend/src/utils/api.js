@@ -3,7 +3,7 @@ import axios from 'axios';
 // Create axios instance with default configuration
 const api = axios.create({
   baseURL: '/api', // Use relative path with Vite proxy
-  timeout: 10000, // 10 second timeout
+  timeout: 30000, // 30 second timeout for AI responses
   headers: {
     'Content-Type': 'application/json',
   },
@@ -68,15 +68,6 @@ export const studyGroupsAPI = {
   
   // Get user's study groups
   getUserGroups: () => api.get('/study-groups/user/me'),
-
-  // Join study group
-  join: (id) => api.post(`/study-groups/${id}/join`),
-
-  // Leave study group
-  leave: (id) => api.post(`/study-groups/${id}/leave`),
-
-  // Delete study group
-  delete: (id) => api.delete(`/study-groups/${id}`),
 };
 
 // API endpoints for channels

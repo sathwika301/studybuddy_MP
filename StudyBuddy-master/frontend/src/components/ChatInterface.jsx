@@ -110,7 +110,8 @@ const ChatInterface = () => {
         setMessages(prev => [...prev, aiMessage]);
       }
     } catch (err) {
-      setError('Failed to send message. Please try again.');
+      const errorMessage = err.response?.data?.error || err.message || 'Failed to send message. Please try again.';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const StudyNote = require('../models/StudyNote');
 const { protect } = require('../middleware/auth');
+const { generateAIResponse } = require('../config/aiConfig');
 
 // Get public study notes (must be defined before /:id routes)
 router.get('/public', async (req, res) => {
@@ -132,14 +133,81 @@ router.put('/:id', protect, async (req, res) => {
 router.delete('/:id', protect, async (req, res) => {
     try {
         const note = await StudyNote.findOneAndDelete({ _id: req.params.id, author: req.user._id });
-        
+
         if (!note) {
             return res.status(404).json({ success: false, error: 'Note not found' });
         }
-        
+
         res.json({ success: true, message: 'Note deleted successfully' });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Generate AI notes
+router.post('/generate', protect, async (req, res) => {
+    try {
+        const { topic, subject, difficulty = 'intermediate' } = req.body;
+
+        if (!topic) {
+            return res.status(400).json({ success: false, error: 'Topic is required' });
+        }
+
+        // Create a focused prompt for reliable note generation
+        const prompt = `Create complete study notes for "${topic}"${subject ? ` in ${subject}` : ''}.
+
+For ${difficulty} learners, provide:
+
+# ${topic}
+
+## Overview
+What it is and why it matters (2-3 sentences).
+
+## Key Concepts
+- Definition
+- 4-5 important terms
+- Main principles
+
+## Explanation
+Break into 2-3 main parts with clear explanations and examples.
+
+## Examples
+2-3 practical examples with explanations.
+
+## Practice
+${difficulty === 'beginner' ? '2-3' : difficulty === 'intermediate' ? '3-4' : '4-5'} practice problems with answers.
+
+## Summary
+Key points in bullets.
+
+Keep complete but concise. No truncation.`;
+
+        // Generate notes using AI
+        const aiResponse = await generateAIResponse(prompt, [], {}, []);
+
+        if (!aiResponse.message) {
+            return res.status(500).json({ success: false, error: 'Failed to generate notes' });
+        }
+
+        res.json({
+            success: true,
+            notes: aiResponse.message,
+            metadata: {
+                topic,
+                subject: subject || 'General',
+                difficulty,
+                generatedAt: new Date(),
+                aiModel: aiResponse.metadata.model
+            }
+        });
+
+    } catch (error) {
+        console.error('Error generating notes:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to generate notes',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     }
 });
 

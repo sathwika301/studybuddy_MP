@@ -74,7 +74,11 @@ router.post('/send', async (req, res) => {
             const VectorStore = require('../utils/vectorStore');
 
             const queryEmbedding = await generateQueryEmbedding(message);
-            retrievedContext = await VectorStore.searchSimilar(userId, queryEmbedding, 3); // Top 3 chunks
+            if (queryEmbedding) {
+                retrievedContext = await VectorStore.searchSimilar(userId, queryEmbedding, 3); // Top 3 chunks
+            } else {
+                console.warn('Query embedding is null, skipping retrieval');
+            }
         } catch (retrievalError) {
             console.warn('Retrieval failed, proceeding without context:', retrievalError.message);
         }
@@ -103,8 +107,12 @@ router.post('/send', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error sending message:', error);
-        res.status(500).json({ success: false, error: 'Failed to send message' });
+        console.error('Error sending message:', error.message, error.stack);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to send message',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     }
 });
 

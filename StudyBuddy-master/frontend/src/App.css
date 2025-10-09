@@ -268,3 +268,29 @@
     scroll-behavior: auto !important;
   }
 }
+.generated-notes-container {
+  background: #f9fafb;
+  border-radius: 1rem;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+  padding: 2rem;
+  margin-top: 2rem;
+}
+
+.generated-notes-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 1rem;
+}
+
+.generated-notes-content {
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  font-size: 1.1rem;
+  color: #374151;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+}

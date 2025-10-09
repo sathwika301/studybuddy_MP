@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FileText, Download, Copy, Sparkles, Loader2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { api } from '../utils/api';
 
 const NotesGenerator = () => {
     const { user } = useAuth();
@@ -18,6 +19,7 @@ const NotesGenerator = () => {
         'Psychology', 'Sociology', 'Philosophy', 'Art', 'Music'
     ];
 
+    // Use api utility for generating notes
     const generateNotes = async () => {
         if (!topic.trim()) {
             setError('Please enter a topic');
@@ -29,76 +31,54 @@ const NotesGenerator = () => {
         setSuccess('');
 
         try {
-            // Simulate AI generation - in real app, this would call your AI service
-            const mockNotes = `# ${topic}
+            const response = await api.post('/study-notes/generate', {
+                topic: topic.trim(),
+                subject: subject || undefined,
+                difficulty
+            });
 
-## Overview
-${topic} is a fundamental concept in ${subject || 'this subject'} that requires careful study and understanding.
+            const data = response.data;
 
-## Key Concepts
-- **Primary Definition**: ${topic} refers to...
-- **Core Principles**: The main principles include...
-- **Applications**: This concept is used in...
-
-## Detailed Explanation
-### Introduction
-${topic} plays a crucial role in understanding ${subject || 'the subject matter'}. It encompasses various aspects that students need to master.
-
-### Main Components
-1. **Component 1**: Description of the first key component
-2. **Component 2**: Description of the second key component
-3. **Component 3**: Description of the third key component
-
-### Examples and Applications
-- **Real-world Example 1**: How this concept applies in practice
-- **Real-world Example 2**: Another practical application
-- **Problem-solving**: Step-by-step approach to solving related problems
-
-## Summary
-Understanding ${topic} is essential for advancing in ${subject || 'your studies'}. Regular practice and application of these concepts will lead to mastery.
-
-## Study Tips
-- Review the key concepts daily
-- Practice with related problems
-- Create flashcards for important terms
-- Discuss with peers or teachers`;
-
-            setGeneratedNotes(mockNotes);
-            setSuccess('Notes generated successfully!');
+            if (data.success && data.notes) {
+                setGeneratedNotes(data.notes);
+                setSuccess('Notes generated successfully!');
+            } else {
+                setError(data.error || 'Failed to generate notes');
+            }
         } catch (err) {
-            setError('Failed to generate notes. Please try again.');
+            setError(
+                err.response?.data?.error ||
+                'Failed to generate notes. Please try again.'
+            );
         } finally {
             setIsGenerating(false);
         }
     };
 
+    // Use api utility for saving notes
     const saveNotes = async () => {
         if (!generatedNotes) return;
 
         try {
-            const response = await fetch('http://localhost:5000/api/notes', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({
-                    title: `Notes on ${topic}`,
-                    content: generatedNotes,
-                    subject: subject || 'General',
-                    topic: topic,
-                    type: 'note',
-                    aiGenerated: true
-                })
+            const response = await api.post('/study-notes', {
+                title: `Notes on ${topic}`,
+                content: generatedNotes,
+                subject: subject || 'General',
+                topic: topic,
+                type: 'note',
+                aiGenerated: true
             });
 
-            if (response.ok) {
+            if (response.status === 201 || response.data.success) {
                 setSuccess('Notes saved to your library!');
             } else {
-                setError('Failed to save notes');
+                setError(response.data.error || 'Failed to save notes');
             }
         } catch (err) {
-            setError('Failed to save notes');
+            setError(
+                err.response?.data?.error ||
+                'Failed to save notes'
+            );
         }
     };
 
@@ -239,7 +219,18 @@ Understanding ${topic} is essential for advancing in ${subject || 'your studies'
                         </div>
                         
                         <div className="prose dark:prose-invert max-w-none">
-                            <pre className="whitespace-pre-wrap font-sans text-gray-700 dark:text-gray-300">
+                            <pre
+                                className="whitespace-pre-wrap font-sans text-gray-700 dark:text-gray-300 leading-relaxed"
+                                style={{
+                                    fontFamily: 'system-ui, -apple-system, sans-serif',
+                                    lineHeight: '1.8',
+                                    fontSize: '16px',
+                                    backgroundColor: 'transparent',
+                                    border: 'none',
+                                    padding: '0',
+                                    margin: '0'
+                                }}
+                            >
                                 {generatedNotes}
                             </pre>
                         </div>
@@ -251,3 +242,4 @@ Understanding ${topic} is essential for advancing in ${subject || 'your studies'
 };
 
 export default NotesGenerator;
+// ...existing code...
