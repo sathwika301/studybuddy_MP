@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
-  Send, Bot, User, Paperclip, Users, Hash,
-  ChevronDown, ChevronRight, Plus, Upload, FileText
+  Send, Bot, User, Upload,
+  ChevronDown, ChevronRight,
+  History, Trash2
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { studyGroupsAPI, channelsAPI, api } from '../utils/api';
-import CreateStudyGroup from './CreateStudyGroup';
-import CreateChannel from './CreateChannel';
+import { api } from '../utils/api';
 import DocumentUpload from './DocumentUpload';
 import '../styles/ChatInterface.css';
 
@@ -19,19 +18,14 @@ const ChatInterface = () => {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [selectedChat, setSelectedChat] = useState(null);
   const [expandedSections, setExpandedSections] = useState({
-    ai: true,
-    groups: true,
-    channels: true
+    ai: true
   });
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [createType, setCreateType] = useState(null);
   const [showDocumentUpload, setShowDocumentUpload] = useState(false);
 
   const messagesEndRef = useRef(null);
   const navigate = useNavigate();
   const { user } = useAuth();
-  console.log("user",user);
-  
 
   // Chat list state
   const [chats, setChats] = useState({
@@ -45,9 +39,7 @@ const ChatInterface = () => {
         timestamp: new Date(),
         avatar: <Bot className="chat-avatar-icon" />
       }
-    ],
-    groups: [],
-    channels: []
+    ]
   });
 
   // Auto-scroll
@@ -61,14 +53,6 @@ const ChatInterface = () => {
       fetchChatHistory();
     }
   }, [user, selectedChat]);
-
-  // Fetch groups and channels
-  useEffect(() => {
-    if (user?._id) {
-      fetchStudyGroups();
-      fetchChannels();
-    }
-  }, [user]);
 
   const fetchChatHistory = async () => {
     try {
@@ -85,7 +69,7 @@ const ChatInterface = () => {
         );
       }
     } catch (err) {
-      console.error('Error fetching chat history:', err);
+      setError('Error fetching chat history.');
     }
   };
 
@@ -139,6 +123,24 @@ const ChatInterface = () => {
     }
   };
 
+  const handleClearChat = async () => {
+    try {
+      await api.delete(`/chat/history/${user._id}`);
+      setMessages([]);
+    } catch (err) {
+      setMessages([]);
+      setError('Could not clear chat history on server. Cleared locally.');
+    }
+  };
+
+  const handleViewHistory = async () => {
+    try {
+      await fetchChatHistory();
+    } catch (err) {
+      setError('Failed to load chat history.');
+    }
+  };
+
   const handleChatSelect = (chat) => {
     setSelectedChat(chat);
     setMessages([]);
@@ -161,69 +163,11 @@ const ChatInterface = () => {
     return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  const fetchStudyGroups = async () => {
-    try {
-      const response = await studyGroupsAPI.getUserGroups();
-      if (response.data.success) {
-        const groups = response.data.groups.map(group => ({
-          id: group._id,
-          name: group.name,
-          type: 'group',
-          lastMessage: group.lastMessage || 'No messages yet',
-          unread: group.unreadCount || 0,
-          timestamp: new Date(group.updatedAt || group.createdAt),
-          members: group.members?.length || 0,
-          avatar: <Users className="chat-avatar-icon" />
-        }));
-        setChats(prev => ({ ...prev, groups }));
-      }
-    } catch (err) {
-      console.error('Error fetching study groups:', err);
-    }
-  };
-
-  const fetchChannels = async () => {
-    try {
-      const response = await channelsAPI.getAll();
-      if (response.data.success) {
-        const channels = response.data.channels.map(channel => ({
-          id: channel._id,
-          name: channel.name,
-          type: 'channel',
-          lastMessage: channel.lastMessage || 'No messages yet',
-          unread: channel.unreadCount || 0,
-          timestamp: new Date(channel.updatedAt || channel.createdAt),
-          avatar: <Hash className="chat-avatar-icon" />
-        }));
-        setChats(prev => ({ ...prev, channels }));
-      }
-    } catch (err) {
-      console.error('Error fetching channels:', err);
-    }
-  };
-
-  const handleCreateGroup = () => {
-    setCreateType('group');
-    setShowCreateModal(true);
-  };
-
-  const handleCreateChannel = () => {
-    setCreateType('channel');
-    setShowCreateModal(true);
-  };
-
-  const handleCancelCreate = () => {
-    setShowCreateModal(false);
-    setCreateType(null);
-  };
-
   return (
     <div className="chat-interface">
       {/* Sidebar */}
       <div className="chat-sidebar">
         <div className="sidebar-header"><h3>Chats</h3></div>
-
-        {/* AI Chat */}
         <div className="chat-section">
           <div className="section-header" onClick={() => toggleSection('ai')}>
             <div className="section-title"><Bot size={18} /><span>AI Chat</span></div>
@@ -251,78 +195,6 @@ const ChatInterface = () => {
             </div>
           )}
         </div>
-
-        {/* Study Groups */}
-        <div className="chat-section">
-          <div className="section-header">
-            <div className="section-title" onClick={() => toggleSection('groups')} style={{ cursor: 'pointer' }}>
-              <Users size={18} /><span>Study Groups</span>
-            </div>
-            <div className="section-actions">
-              <button className="create-btn" onClick={handleCreateGroup} title="Create new study group">
-                <Plus size={16} />
-              </button>
-              {expandedSections.groups ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-            </div>
-          </div>
-          {expandedSections.groups && (
-            <div className="section-content">
-              {chats.groups.map(chat => (
-                <div
-                  key={chat.id}
-                  className={`chat-item ${selectedChat?.id === chat.id ? 'active' : ''}`}
-                  onClick={() => handleChatSelect(chat)}
-                >
-                  <div className="chat-avatar">{chat.avatar}</div>
-                  <div className="chat-info">
-                    <div className="chat-name">{chat.name}</div>
-                    <div className="chat-last-message">{chat.lastMessage}</div>
-                  </div>
-                  <div className="chat-meta">
-                    <div className="chat-time">{formatTime(chat.timestamp)}</div>
-                    {chat.unread > 0 && <div className="unread-badge">{chat.unread}</div>}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Channels */}
-        <div className="chat-section">
-          <div className="section-header">
-            <div className="section-title" onClick={() => toggleSection('channels')} style={{ cursor: 'pointer' }}>
-              <Hash size={18} /><span>Channels</span>
-            </div>
-            <div className="section-actions">
-              <button className="create-btn" onClick={handleCreateChannel} title="Create new channel">
-                <Plus size={16} />
-              </button>
-              {expandedSections.channels ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-            </div>
-          </div>
-          {expandedSections.channels && (
-            <div className="section-content">
-              {chats.channels.map(chat => (
-                <div
-                  key={chat.id}
-                  className={`chat-item ${selectedChat?.id === chat.id ? 'active' : ''}`}
-                  onClick={() => handleChatSelect(chat)}
-                >
-                  <div className="chat-avatar">{chat.avatar}</div>
-                  <div className="chat-info">
-                    <div className="chat-name">{chat.name}</div>
-                    <div className="chat-last-message">{chat.lastMessage}</div>
-                  </div>
-                  <div className="chat-meta">
-                    <div className="chat-time">{formatTime(chat.timestamp)}</div>
-                    {chat.unread > 0 && <div className="unread-badge">{chat.unread}</div>}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
 
       {/* Main Chat Area */}
@@ -330,11 +202,52 @@ const ChatInterface = () => {
         {selectedChat ? (
           <>
             <div className="chat-header">
-              <div className="header-content">
+              <div className="header-content" style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                 <div className="header-icon">{selectedChat.avatar}</div>
-                <div className="header-text">
-                  <h3>{selectedChat.name}</h3>
-                  {selectedChat.type === 'group' && <p>{selectedChat.members} members</p>}
+                <div className="header-text" style={{ flex: 1, marginLeft: 12 }}>
+                  <h3 style={{ margin: 0 }}>{selectedChat.name}</h3>
+                </div>
+                <div className="header-actions" style={{ display: 'flex', gap: '12px', marginLeft: 'auto' }}>
+                  <button
+                    onClick={handleViewHistory}
+                    title="View History"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      background: '#e0e7ff',
+                      border: 'none',
+                      borderRadius: '6px',
+                      padding: '6px 14px',
+                      color: '#2563eb',
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      fontSize: '15px'
+                    }}
+                  >
+                    <History size={18} />
+                    History
+                  </button>
+                  <button
+                    onClick={handleClearChat}
+                    title="Clear Chat"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      background: '#fee2e2',
+                      border: 'none',
+                      borderRadius: '6px',
+                      padding: '6px 14px',
+                      color: '#dc2626',
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      fontSize: '15px'
+                    }}
+                  >
+                    <Trash2 size={18} />
+                    Clear
+                  </button>
                 </div>
               </div>
             </div>
@@ -397,7 +310,7 @@ const ChatInterface = () => {
           <div className="no-chat-selected">
             <Bot size={64} className="no-chat-icon" />
             <h2>Select a chat to start</h2>
-            <p>Choose from AI chat, study groups, or channels to begin your conversation.</p>
+            <p>Choose AI chat to begin your conversation.</p>
           </div>
         )}
       </div>
@@ -424,28 +337,12 @@ const ChatInterface = () => {
         </div>
       )}
 
-      {/* Create Modals */}
-      {showCreateModal && createType === 'group' && (
-        <CreateStudyGroup
-          onCancel={handleCancelCreate}
-          onClose={() => setShowCreateModal(false)}
-          onGroupCreated={fetchStudyGroups}
-        />
-      )}
-      {showCreateModal && createType === 'channel' && (
-        <CreateChannel
-          onClose={() => setShowCreateModal(false)}
-          onChannelCreated={fetchChannels}
-        />
-      )}
-
       {/* Document Upload Modal */}
       {showDocumentUpload && (
         <DocumentUpload
           onClose={() => setShowDocumentUpload(false)}
           onUploadSuccess={() => {
             setShowDocumentUpload(false);
-            // Optionally refresh chat or show success message
           }}
         />
       )}

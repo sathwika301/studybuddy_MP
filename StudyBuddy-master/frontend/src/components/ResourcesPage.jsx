@@ -13,7 +13,7 @@ const ResourcesPage = () => {
   const handleFileUpload = async (event) => {
     const files = Array.from(event.target.files);
     setLoading(true);
-    
+
     // Simulate file processing
     setTimeout(() => {
       const newFiles = files.map(file => ({
@@ -24,7 +24,7 @@ const ResourcesPage = () => {
         uploadDate: new Date().toLocaleDateString(),
         content: 'Sample extracted text content...'
       }));
-      
+
       setUploadedFiles(prev => [...prev, ...newFiles]);
       setLoading(false);
     }, 1500);
