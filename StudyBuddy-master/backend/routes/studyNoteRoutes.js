@@ -153,34 +153,62 @@ router.post('/generate', protect, async (req, res) => {
             return res.status(400).json({ success: false, error: 'Topic is required' });
         }
 
-        // Create a focused prompt for reliable note generation
-        const prompt = `Create complete study notes for "${topic}"${subject ? ` in ${subject}` : ''}.
+        const subjects = [
+            'Algorithms', 'Art', 'Biology', 'Business Studies', 'Chemistry', 'Computer Networks',
+            'Computer Science', 'Data Structures', 'Database Management Systems', 'Discrete Mathematics',
+            'Economics', 'English', 'Environmental Science', 'Geography', 'History', 'Literature',
+            'Mathematics', 'Music', 'Operating Systems', 'Philosophy', 'Physics', 'Political Science',
+            'Programming Languages', 'Psychology', 'Sociology', 'Software Engineering', 'Theory of Computation',
+            'Web Development'
+        ];
 
-For ${difficulty} learners, provide:
+        let selectedSubject = subject;
 
-# ${topic}
+        // Auto-select subject if not provided
+        if (!selectedSubject) {
+            const classificationPrompt = `Classify the following topic into one of these subjects: ${subjects.join(', ')}. Topic: "${topic}". Respond with only the subject name that best fits. If it doesn't fit any, respond with "General".`;
 
-## Overview
-What it is and why it matters (2-3 sentences).
+            const classificationResponse = await generateAIResponse(classificationPrompt, [], {}, []);
 
-## Key Concepts
-- Definition
-- 4-5 important terms
-- Main principles
+            if (classificationResponse.message) {
+                const classified = classificationResponse.message.trim();
+                selectedSubject = subjects.includes(classified) ? classified : 'General';
+            } else {
+                selectedSubject = 'General';
+            }
+        }
 
-## Explanation
-Break into 2-3 main parts with clear explanations and examples.
+        // Create a focused prompt for reliable note generation with structured format
+        const prompt = `Create complete study notes for "${topic}" in ${selectedSubject}.
 
-## Examples
-2-3 practical examples with explanations.
+For ${difficulty} learners, provide a clear and structured response:
 
-## Practice
-${difficulty === 'beginner' ? '2-3' : difficulty === 'intermediate' ? '3-4' : '4-5'} practice problems with answers.
+**${topic} (${selectedSubject})**
 
-## Summary
-Key points in bullets.
+**Overview**
+Brief introduction and importance (2-3 sentences).
 
-Keep complete but concise. No truncation.`;
+**Key Concepts**
+- Core definition
+- 4-6 essential terms with brief explanations
+- Fundamental principles
+
+**Detailed Explanation**
+Break down into 2-4 logical sections with step-by-step explanations and examples.
+
+**Practical Examples**
+3-4 real-world examples with clear explanations.
+
+**Practice Exercises**
+${difficulty === 'beginner' ? '3-4' : difficulty === 'intermediate' ? '4-5' : '5-6'} practice problems/questions with detailed solutions.
+
+**Key Takeaways**
+Summary of main points in bullet form.
+
+**Additional Resources**
+Suggest 2-3 related topics or further reading.
+
+Format with clear headings, bullet points, and numbered lists where appropriate. Ensure explanations are comprehensive yet concise. Use markdown for formatting.`;
 
         // Generate notes using AI
         const aiResponse = await generateAIResponse(prompt, [], {}, []);
@@ -194,7 +222,7 @@ Keep complete but concise. No truncation.`;
             notes: aiResponse.message,
             metadata: {
                 topic,
-                subject: subject || 'General',
+                subject: selectedSubject,
                 difficulty,
                 generatedAt: new Date(),
                 aiModel: aiResponse.metadata.model

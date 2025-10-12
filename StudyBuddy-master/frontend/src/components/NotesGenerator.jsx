@@ -14,9 +14,12 @@ const NotesGenerator = () => {
     const [success, setSuccess] = useState('');
 
     const subjects = [
-        'Mathematics', 'Physics', 'Chemistry', 'Biology', 'Computer Science',
-        'History', 'Geography', 'Literature', 'Economics', 'Business Studies',
-        'Psychology', 'Sociology', 'Philosophy', 'Art', 'Music'
+        'Algorithms', 'Art', 'Biology', 'Business Studies', 'Chemistry', 'Computer Networks',
+        'Computer Science', 'Data Structures', 'Database Management Systems', 'Discrete Mathematics',
+        'Economics', 'English', 'Environmental Science', 'Geography', 'History', 'Literature',
+        'Mathematics', 'Music', 'Operating Systems', 'Philosophy', 'Physics', 'Political Science',
+        'Programming Languages', 'Psychology', 'Sociology', 'Software Engineering', 'Theory of Computation',
+        'Web Development'
     ];
 
     // Use api utility for generating notes
@@ -41,6 +44,10 @@ const NotesGenerator = () => {
 
             if (data.success && data.notes) {
                 setGeneratedNotes(data.notes);
+                // Auto-set the subject if it was not manually selected
+                if (!subject && data.metadata && data.metadata.subject) {
+                    setSubject(data.metadata.subject);
+                }
                 setSuccess('Notes generated successfully!');
             } else {
                 setError(data.error || 'Failed to generate notes');
@@ -128,16 +135,20 @@ const NotesGenerator = () => {
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Subject
                             </label>
-                            <select
+                            <input
+                                type="text"
                                 value={subject}
                                 onChange={(e) => setSubject(e.target.value)}
+                                placeholder="Search or select subject"
+                                list="subjects-list"
                                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                            >
-                                <option value="">Select Subject</option>
+                            />
+                            <datalist id="subjects-list">
+                                <option value="" />
                                 {subjects.map(subj => (
-                                    <option key={subj} value={subj}>{subj}</option>
+                                    <option key={subj} value={subj} />
                                 ))}
-                            </select>
+                            </datalist>
                         </div>
                         
                         <div>
