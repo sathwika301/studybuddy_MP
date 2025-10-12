@@ -1,2 +1,8 @@
-- [x] Update subjects array in Flashcards.jsx to match NotesGenerator subjects
-- [x] Change subject field in Flashcards.jsx to input with datalist for search functionality
+# TODO: Remove Add Question Button from QuizMaker
+
+- [x] Edit StudyBuddy-master/frontend/src/components/QuizMaker.jsx to remove the "Add Question" button element.
+
+# TODO: Add Topic Field in Generate Quiz
+
+- [x] Add a Topic input field to the QuizMaker form.
+- [x] Update the generateAIQuiz function to use the topic for generating questions.
