@@ -10,6 +10,7 @@ import SignupPage from "./components/SignupPage";
 import ChatInterface from "./components/ChatInterface";
 import ResourcesPage from "./components/ResourcesPage";
 import ProfilePage from "./components/ProfilePage";
+import Flashcards from "./components/Flashcards";
 import Footer from "./components/Footer";
 import Layout from "./components/Layout";
 

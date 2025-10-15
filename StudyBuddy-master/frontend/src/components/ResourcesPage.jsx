@@ -37,32 +37,7 @@ const ResourcesPage = () => {
     { id: 'quiz', label: 'Generate Quiz', icon: FileQuestion },
   ];
 
-  const features = [
-    {
-      id: 'summarization',
-      title: 'AI Summarization',
-      icon: Sparkles,
-      color: 'purple',
-      shortDescription: 'Get concise summaries of lengthy documents in seconds',
-      fullDescription: 'Our AI summarization tool analyzes your study materials and extracts the most important information, creating concise summaries that capture key concepts and main ideas. Perfect for quickly reviewing complex topics before exams or understanding lengthy research papers.'
-    },
-    {
-      id: 'quizzes',
-      title: 'Smart Quizzes',
-      icon: Brain,
-      color: 'green',
-      shortDescription: 'Generate personalized quizzes based on your study materials',
-      fullDescription: 'Transform your study materials into interactive quizzes that test your understanding. Our AI generates multiple-choice questions, true/false statements, and fill-in-the-blank exercises tailored to your specific content. Track your progress and identify areas that need more focus.'
-    },
-    {
-      id: 'flashcards',
-      title: 'Flashcards',
-      icon: BookOpen,
-      color: 'blue',
-      shortDescription: 'Create interactive flashcards for effective memorization',
-      fullDescription: 'Automatically generate digital flashcards from your study materials. Our system creates question-answer pairs, key term definitions, and concept explanations. Use spaced repetition algorithms to optimize your learning and improve long-term retention of information.'
-    }
-  ];
+  const features = [];
 
   const openFeatureModal = (feature) => {
     setSelectedFeature(feature);
@@ -85,7 +60,7 @@ const ResourcesPage = () => {
         </div>
 
         {/* Feature Cards Section - Moved below heading tagline */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="mt-8 grid grid-cols-1 gap-6">
           {features.map((feature) => {
             const IconComponent = feature.icon;
             return (

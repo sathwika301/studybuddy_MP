@@ -27,6 +27,7 @@ const Navbar = () => {
     { name: 'Home', href: '/', icon: BookOpen },
     { name: 'Resources', href: '/resources', icon: FileText },
     { name: 'Study Chat', href: '/chat', icon: MessageSquare },
+    { name: 'Study Groups', href: '/study-groups', icon: Users },
   ];
 
   const isActive = (path) => location.pathname === path;

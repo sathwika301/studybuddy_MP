@@ -15,7 +15,7 @@ const Footer = () => {
               StudyBuddy AI
             </h2>
             <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'} text-sm leading-relaxed`}>
-              Your intelligent study companion powered by <b>cutting-edge AI technology</b>. <br /> 
+              Your intelligent study companion powered by <b>cutting-edge AI technology</b>. <br />
               Transform your learning experience with personalized notes, smart quizzes, and collaborative study groups.
             </p>
           </div>
@@ -68,7 +68,7 @@ const Footer = () => {
         {/* Copyright */}
         <div className={`border-t ${isDark ? 'border-gray-700' : 'border-gray-300'} mt-8 pt-8 text-center`}>
           <p className={`${isDark ? 'text-gray-400' : 'text-gray-500'} text-sm`}>
-            © 2025 StudyBuddy AI. All rights reserved. Built with ❤️ by Shrikanth.
+            © 2025 StudyBuddy AI. All rights reserved.
           </p>
         </div>
       </div>

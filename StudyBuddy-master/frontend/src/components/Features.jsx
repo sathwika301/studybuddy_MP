@@ -1,35 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import FeatureCard from './FeatureCard';
-import { 
-  FileText, 
-  StickyNote, 
+import {
+  StickyNote,
   Users,
   Sparkles,
   Zap
 } from 'lucide-react';
 
 const Features = () => {
-const features = [
-    {
-      icon: FileText,
-      title: 'Summarization',
-      description: 'Upload any PDF and get instant summaries, key points, and detailed analysis with AI-powered insights.',
-      color: 'from-blue-500 to-cyan-500',
-    },
-    {
-      icon: StickyNote,
-      title: 'Quizzes',
-      description: 'Generate customized practice quizzes based on your study materials to test your knowledge and prepare for exams effectively.',
-      color: 'from-green-500 to-emerald-500',
-    },
-    {
-      icon: Users,
-      title: 'Flashcards',
-      description: 'Transform your notes into interactive flashcards with spaced repetition to enhance memory retention and learning efficiency.',
-      color: 'from-purple-500 to-pink-500',
-    },
-  ];
+const features = [];
 
   return (
     <section className="py-20 bg-gray-50 dark:bg-gray-800 shadow-lg dark:shadow-none relative overflow-hidden">
@@ -61,7 +41,7 @@ const features = [
         </div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+        <div className="grid grid-cols-1 gap-6 mb-16">
           {features.map((feature, index) => (
             <Link 
               key={index}

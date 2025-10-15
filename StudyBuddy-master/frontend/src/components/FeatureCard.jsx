@@ -50,7 +50,7 @@ const FeatureCard = ({ icon: Icon, title, description, color, features, index })
 
         {/* Learn More Button */}
         <button className="inline-flex items-center space-x-2 text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium group-hover:translate-x-1 transition-all duration-300">
-          <span>Learn More</span>
+          <span>{title === 'AI Chat Assistant' ? 'Start Using Now' : 'Learn More'}</span>
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
         </button>
       </div>
