@@ -181,34 +181,55 @@ router.post('/generate', protect, async (req, res) => {
         // Create a focused prompt for reliable note generation with structured format
         const prompt = `Create complete study notes for "${topic}" in ${selectedSubject}.
 
-For ${difficulty} learners, provide a clear and structured response:
+For ${difficulty} learners, provide a clear and structured response using markdown formatting:
 
-**${topic} (${selectedSubject})**
+# ${topic} (${selectedSubject})
 
-**Overview**
+## Overview
 Brief introduction and importance (2-3 sentences).
 
-**Key Concepts**
-- Core definition
-- 4-6 essential terms with brief explanations
-- Fundamental principles
+## Key Concepts
+- **Core definition**: [definition here]
+- **Essential terms**: 4-6 key terms with brief explanations
+- **Fundamental principles**: Main principles explained
 
-**Detailed Explanation**
+## Detailed Explanation
 Break down into 2-4 logical sections with step-by-step explanations and examples.
 
-**Practical Examples**
-3-4 real-world examples with clear explanations.
+### Section 1: [First major concept]
+[Step-by-step explanation with examples]
 
-**Practice Exercises**
+### Section 2: [Second major concept]
+[Step-by-step explanation with examples]
+
+## Practical Examples
+${difficulty === 'beginner' ? '3-4' : difficulty === 'intermediate' ? '4-5' : '5-6'} real-world examples with clear explanations.
+
+## Practice Exercises
 ${difficulty === 'beginner' ? '3-4' : difficulty === 'intermediate' ? '4-5' : '5-6'} practice problems/questions with detailed solutions.
 
-**Key Takeaways**
-Summary of main points in bullet form.
+## Key Takeaways
+- [Main point 1]
+- [Main point 2]
+- [Main point 3]
 
-**Additional Resources**
-Suggest 2-3 related topics or further reading.
+## Additional Resources
+Here are some recommended resources to deepen your understanding:
 
-Format with clear headings, bullet points, and numbered lists where appropriate. Ensure explanations are comprehensive yet concise. Use markdown for formatting.`;
+### 📚 Related Topics to Explore
+- **Topic 1**: Brief description of why this related topic is important
+- **Topic 2**: Brief description of why this related topic is important
+- **Topic 3**: Brief description of why this related topic is important
+
+### 🔍 Further Reading
+- **Book/Article 1**: "Title of recommended book or article" - Brief explanation of its relevance
+- **Book/Article 2**: "Title of recommended book or article" - Brief explanation of its relevance
+
+### 🌐 Online Resources
+- **Website/Resource 1**: Brief description and why it's helpful
+- **Website/Resource 2**: Brief description and why it's helpful
+
+Use proper markdown formatting with headings, bold text for emphasis, bullet points, numbered lists, and code blocks where appropriate. Make it educational and easy to follow for students.`;
 
         // Generate notes using AI
         const aiResponse = await generateAIResponse(prompt, [], {}, []);

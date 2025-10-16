@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
 import {
   Send, Bot, User, Upload,
   ChevronDown, ChevronRight,
@@ -264,7 +265,30 @@ const ChatInterface = () => {
                       {message.sender === 'user' ? <User size={16} /> : <Bot size={16} />}
                     </div>
                     <div className="message-content">
-                      <div className="message-text">{message.message}</div>
+                      <div className="message-text">
+                        {message.sender === 'ai' ? (
+                          <ReactMarkdown
+                            components={{
+                              h1: ({ children }) => <h1 className="text-gray-900 dark:text-white" style={{ fontSize: '1.5em', fontWeight: 'bold', margin: '0.5em 0' }}>{children}</h1>,
+                              h2: ({ children }) => <h2 className="text-gray-800 dark:text-gray-100" style={{ fontSize: '1.3em', fontWeight: 'bold', margin: '0.4em 0' }}>{children}</h2>,
+                              h3: ({ children }) => <h3 className="text-gray-700 dark:text-gray-200" style={{ fontSize: '1.1em', fontWeight: 'bold', margin: '0.3em 0' }}>{children}</h3>,
+                              p: ({ children }) => <p className="text-gray-700 dark:text-gray-300" style={{ margin: '0.5em 0', lineHeight: '1.6' }}>{children}</p>,
+                              ul: ({ children }) => <ul className="text-gray-700 dark:text-gray-300" style={{ margin: '0.5em 0', paddingLeft: '1.5em' }}>{children}</ul>,
+                              ol: ({ children }) => <ol className="text-gray-700 dark:text-gray-300" style={{ margin: '0.5em 0', paddingLeft: '1.5em' }}>{children}</ol>,
+                              li: ({ children }) => <li className="text-gray-700 dark:text-gray-300" style={{ margin: '0.2em 0' }}>{children}</li>,
+                              strong: ({ children }) => <strong className="text-gray-900 dark:text-white font-bold">{children}</strong>,
+                              em: ({ children }) => <em className="text-gray-600 dark:text-gray-400 italic">{children}</em>,
+                              code: ({ children }) => <code className="bg-gray-100 dark:bg-gray-800 text-red-600 dark:text-red-400 px-2 py-1 rounded text-sm font-medium font-mono">{children}</code>,
+                              pre: ({ children }) => <pre className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 p-4 rounded-lg overflow-auto my-2 border border-gray-200 dark:border-gray-700">{children}</pre>,
+                              blockquote: ({ children }) => <blockquote className="border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-gray-600 dark:text-gray-400 italic pl-4 my-2">{children}</blockquote>,
+                            }}
+                          >
+                            {message.message}
+                          </ReactMarkdown>
+                        ) : (
+                          message.message
+                        )}
+                      </div>
                       <div className="message-time">{formatTime(message.timestamp)}</div>
                     </div>
                   </div>
