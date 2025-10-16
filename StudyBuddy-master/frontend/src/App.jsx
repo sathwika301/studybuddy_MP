@@ -5,6 +5,8 @@ import { AuthProvider } from "./contexts/AuthContext";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import StudyGroupsPage from "./components/StudyGroupsPage";
+import StudyGroupDetail from "./components/StudyGroupDetail";
+import GroupChannelDetail from "./components/GroupChannelDetail";
 import LoginPage from "./components/LoginPage";
 import SignupPage from "./components/SignupPage";
 import ChatInterface from "./components/ChatInterface";
@@ -27,6 +29,8 @@ const App = () => {
               <Route path="/" element={<Hero />} />
               <Route path="/resources" element={<ResourcesPage />} />
               <Route path="/study-groups" element={<StudyGroupsPage />} />
+              <Route path="/study-groups/:id/details" element={<StudyGroupDetail />} />
+              <Route path="/channels/:id/details" element={<GroupChannelDetail />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/chat" element={<ChatInterface />} />

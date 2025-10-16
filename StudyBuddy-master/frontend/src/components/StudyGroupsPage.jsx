@@ -11,7 +11,7 @@ import { io } from "socket.io-client";
 import { studyGroupsAPI, channelsAPI, cache } from "../utils/api";
 import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
-import GroupChannelDetail from "./GroupChannelDetail";
+
 
 const StudyGroupsPage = () => {
   const [activeView, setActiveView] = useState('groups');
@@ -30,31 +30,7 @@ const StudyGroupsPage = () => {
   const { user } = useAuth();
   const { isDark } = useTheme();
 
-  // Dummy data for demonstration (only show if no real data)
-  const dummyGroups = [
-    {
-      _id: 'demo-group-1',
-      name: 'AI Study Group',
-      description: 'Exploring artificial intelligence concepts and applications',
-      subject: 'Computer Science',
-      createdBy: { _id: 'demo-user' },
-      isPrivate: false,
-      createdAt: new Date(),
-      members: [{ user: { _id: 'demo-user' }, role: 'admin' }],
-      isDummy: true
-    },
-    {
-      _id: 'demo-group-2',
-      name: 'Math Study Circle',
-      description: 'Advanced calculus and linear algebra discussions',
-      subject: 'Mathematics',
-      createdBy: { _id: 'demo-user' },
-      isPrivate: true,
-      createdAt: new Date(Date.now() - 86400000),
-      members: [{ user: { _id: 'demo-user' }, role: 'member' }],
-      isDummy: true
-    }
-  ];
+
 
   const dummyChannels = [
     {
@@ -86,8 +62,8 @@ const StudyGroupsPage = () => {
       const cachedData = cache.get(cacheKey);
       
       if (cachedData && !forceRefresh) {
-        setGroups(cachedData.allGroups && cachedData.allGroups.length > 0 ? cachedData.allGroups : dummyGroups);
-        setChannels(cachedData.allChannels && cachedData.allChannels.length > 0 ? cachedData.allChannels : dummyChannels);
+        setGroups(cachedData.allGroups && cachedData.allGroups.length > 0 ? cachedData.allGroups : []);
+        setChannels(cachedData.allChannels && cachedData.allChannels.length > 0 ? cachedData.allChannels : []);
         setMyGroups(cachedData.userGroups || []);
         setLoading(false);
         setRefreshing(false);
@@ -121,19 +97,19 @@ const StudyGroupsPage = () => {
       
       if (allGroupsResponse.status === 'fulfilled') {
         fetchedGroups = allGroupsResponse.value.data.groups || [];
-        setGroups(fetchedGroups.length > 0 ? fetchedGroups : dummyGroups);
+        setGroups(fetchedGroups.length > 0 ? fetchedGroups : []);
       } else {
         console.error('Failed to fetch all groups:', allGroupsResponse.reason);
         setError("⚠️ Failed to fetch study groups. Please try again later.");
-        setGroups(dummyGroups);
+        setGroups([]);
       }
 
       if (allChannelsResponse.status === 'fulfilled') {
         fetchedChannels = allChannelsResponse.value.data.channels || [];
-        setChannels(fetchedChannels.length > 0 ? fetchedChannels : dummyChannels);
+        setChannels(fetchedChannels.length > 0 ? fetchedChannels : []);
       } else {
         console.error('Failed to fetch all channels:', allChannelsResponse.reason);
-        setChannels(dummyChannels);
+        setChannels([]);
       }
 
       if (user && responses.length > 2) {
@@ -163,8 +139,8 @@ const StudyGroupsPage = () => {
     } catch (err) {
       console.error('Error fetching data:', err);
       setError("⚠️ Failed to load study groups. Please check your connection and try again.");
-      setGroups(dummyGroups);
-      setChannels(dummyChannels);
+      setGroups([]);
+      setChannels([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -191,12 +167,24 @@ const StudyGroupsPage = () => {
     setShowCreateModal(false);
   };
 
-  const handleDeleteItem = (id, type) => {
+  const handleDeleteItem = async (id, type) => {
     if (type === 'group') {
-      setGroups(groups.filter(group => group._id !== id));
-      setMyGroups(myGroups.filter(group => group._id !== id));
+      try {
+        await studyGroupsAPI.delete(id);
+        setGroups(groups.filter(group => group._id !== id));
+        setMyGroups(myGroups.filter(group => group._id !== id));
+      } catch (error) {
+        console.error('Failed to delete group:', error);
+        alert('Failed to delete group');
+      }
     } else if (type === 'channel') {
-      setChannels(channels.filter(channel => channel._id !== id));
+      try {
+        await channelsAPI.delete(id);
+        setChannels(channels.filter(channel => channel._id !== id));
+      } catch (error) {
+        console.error('Failed to delete channel:', error);
+        alert('Failed to delete channel');
+      }
     }
   };
 
@@ -377,7 +365,7 @@ const StudyGroupsPage = () => {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigate(`/study-groups/${group._id}`);
+                        navigate(`/study-groups/${group._id}/details`);
                       }}
                       className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                     >
@@ -513,18 +501,7 @@ const StudyGroupsPage = () => {
         </div>
       )}
 
-      {/* Group/Channel Detail View */}
-      {selectedItem && selectedType && (
-        <GroupChannelDetail
-          data={selectedItem}
-          type={selectedType}
-          onClose={() => {
-            setSelectedItem(null);
-            setSelectedType(null);
-            navigate('/study-groups');
-          }}
-        />
-      )}
+
       </div>
     </div>
   );

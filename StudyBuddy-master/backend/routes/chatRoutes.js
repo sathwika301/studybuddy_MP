@@ -83,8 +83,8 @@ router.post('/send', async (req, res) => {
             console.warn('Retrieval failed, proceeding without context:', retrievalError.message);
         }
 
-        // Generate AI response with retrieved context
-        const aiResponse = await generateAIResponse(message, [], {}, retrievedContext);
+        // Generate AI response with retrieved context and increased max tokens
+        const aiResponse = await generateAIResponse(message, [], {}, retrievedContext, { maxTokens: 4000 });
 
         // Save AI response with retrieval metadata
         const aiMessage = new ChatMessage({

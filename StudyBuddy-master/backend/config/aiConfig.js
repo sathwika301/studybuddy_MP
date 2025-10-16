@@ -21,7 +21,7 @@ try {
 // AI Configuration
 const aiConfig = {
   model: "gemini-2.5-flash", // or "gemini-1.5-pro"
-  maxTokens: 1000,
+  maxTokens: 4000,
   temperature: 0.7,
   systemPrompt: `You are StudyBuddy AI, a friendly and knowledgeable learning assistant. Your role is to help students understand concepts, provide study guidance, and support their learning journey. You should:
 
@@ -69,7 +69,7 @@ function extractFollowUpQuestions() {
 }
 
 // Main AI response function
-async function generateAIResponse(message, context = [], userProfile = {}, retrievedContext = []) {
+async function generateAIResponse(message, context = [], userProfile = {}, retrievedContext = [], options = {}) {
   if (!gemini) {
     return {
       message: "AI features are disabled. Add your Gemini API key to enable AI assistance.",
@@ -101,9 +101,10 @@ async function generateAIResponse(message, context = [], userProfile = {}, retri
 
     // Call Gemini API with systemInstruction and contents
     const model = gemini.getGenerativeModel({ model: aiConfig.model });
+    const maxTokens = options.maxTokens || aiConfig.maxTokens;
     const result = await model.generateContent({
       contents,
-      generationConfig: { maxOutputTokens: aiConfig.maxTokens, temperature: aiConfig.temperature },
+      generationConfig: { maxOutputTokens: maxTokens, temperature: aiConfig.temperature },
       systemInstruction: { parts: [{ text: systemInstruction }] },
     });
 

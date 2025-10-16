@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import {
   Send, Bot, User, Upload,
   ChevronDown, ChevronRight,
-  History, Trash2
+  History, Trash2, Copy
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -23,6 +23,7 @@ const ChatInterface = () => {
   });
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDocumentUpload, setShowDocumentUpload] = useState(false);
+  const [copiedMessageId, setCopiedMessageId] = useState(null);
 
   const messagesEndRef = useRef(null);
   const navigate = useNavigate();
@@ -170,6 +171,16 @@ const ChatInterface = () => {
     return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  const handleCopyMessage = async (messageId, messageText) => {
+    try {
+      await navigator.clipboard.writeText(messageText);
+      setCopiedMessageId(messageId);
+      setTimeout(() => setCopiedMessageId(null), 2000); // Reset after 2 seconds
+    } catch (err) {
+      setError('Failed to copy message to clipboard.');
+    }
+  };
+
   return (
     <div className="chat-interface">
       {/* Sidebar */}
@@ -294,7 +305,29 @@ const ChatInterface = () => {
                           message.message
                         )}
                       </div>
-                      <div className="message-time">{formatTime(message.timestamp)}</div>
+                      <div className="message-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                        <button
+                          onClick={() => handleCopyMessage(message.id, message.message)}
+                          title="Copy message"
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: copiedMessageId === message.id ? '#10b981' : '#6b7280',
+                            fontSize: '14px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          <Copy size={14} />
+                          {copiedMessageId === message.id ? 'Copied!' : 'Copy'}
+                        </button>
+                        <div className="message-time">{formatTime(message.timestamp)}</div>
+                      </div>
                     </div>
                   </div>
                 ))}

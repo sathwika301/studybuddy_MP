@@ -231,8 +231,8 @@ Here are some recommended resources to deepen your understanding:
 
 Use proper markdown formatting with headings, bold text for emphasis, bullet points, numbered lists, and code blocks where appropriate. Make it educational and easy to follow for students.`;
 
-        // Generate notes using AI
-        const aiResponse = await generateAIResponse(prompt, [], {}, []);
+        // Generate notes using AI with increased max tokens
+        const aiResponse = await generateAIResponse(prompt, [], {}, [], { maxTokens: 4000 });
 
         if (!aiResponse.message) {
             return res.status(500).json({ success: false, error: 'Failed to generate notes' });
