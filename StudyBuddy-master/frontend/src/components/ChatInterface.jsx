@@ -48,6 +48,11 @@ const ChatInterface = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Auto-select AI chat on mount
+  useEffect(() => {
+    handleChatSelect(chats.ai[0]);
+  }, []);
+
   // Fetch chat history when AI chat selected
   useEffect(() => {
     if (user?._id && selectedChat?.type === 'ai') {

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { FileText, Brain, BookOpen, Users, BarChart3, TrendingUp, MessageCircle, X, ChevronRight } from 'lucide-react';
+import { Brain, BookOpen, Users, BarChart3, TrendingUp, MessageCircle, X, ChevronRight } from 'lucide-react';
 
 const Hero = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [selectedFeature, setSelectedFeature] = useState(null);
   const [showChatPrompt, setShowChatPrompt] = useState(false);
   const [showGroupPrompt, setShowGroupPrompt] = useState(false);
@@ -29,14 +30,6 @@ const Hero = () => {
       requiresAuth: true
     },
     {
-      icon: FileText,
-      title: 'AI PDF Analysis',
-      description: 'Upload any PDF and get instant AI-powered analysis with key insights.',
-      details: 'Our advanced AI analyzes your documents to extract the most important information, creating concise summaries that save you hours of reading time.',
-      color: 'from-purple-500 to-pink-500',
-      stat: '10K+ PDFs Analyzed'
-    },
-    {
       icon: Brain,
       title: 'Smart Quizzes',
       description: 'Generate personalized quizzes that adapt to your learning progress.',
@@ -51,14 +44,6 @@ const Hero = () => {
       details: 'Convert your notes into dynamic flashcards that use proven spaced repetition algorithms to optimize your study sessions.',
       color: 'from-indigo-500 to-blue-500',
       stat: '2M+ Flashcards Created'
-    },
-    {
-      icon: BarChart3,
-      title: 'Progress Analytics',
-      description: 'Track your learning progress with detailed analytics and performance charts.',
-      details: 'Monitor your study habits, quiz scores, and learning progress with comprehensive analytics and visual charts.',
-      color: 'from-teal-500 to-green-500',
-      stat: '95% Success Rate'
     }
   ];
 
@@ -81,6 +66,28 @@ const Hero = () => {
   const closeAuthPrompt = () => {
     setShowChatPrompt(false);
     setShowGroupPrompt(false);
+  };
+
+  const handleStartUsingNow = () => {
+    if (selectedFeature.title === 'AI Chat Assistant') {
+      if (user) {
+        navigate('/chat');
+      } else {
+        setShowChatPrompt(true);
+      }
+    } else if (selectedFeature.title === 'Study Groups') {
+      if (user) {
+        navigate('/study-groups');
+      } else {
+        setShowGroupPrompt(true);
+      }
+    } else if (selectedFeature.title === 'Smart Quizzes') {
+      navigate('/quiz');
+    } else if (selectedFeature.title === 'Interactive Flashcards') {
+      navigate('/flashcards');
+    } else {
+      closeFeatureModal();
+    }
   };
 
   return (
@@ -188,7 +195,7 @@ const Hero = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => {
               const IconComponent = feature.icon;
               return (
@@ -300,7 +307,7 @@ const Hero = () => {
             {/* Action Button */}
             <div className="flex justify-center">
               <button
-                onClick={closeFeatureModal}
+                onClick={handleStartUsingNow}
                 className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl"
               >
                 Start Using Now

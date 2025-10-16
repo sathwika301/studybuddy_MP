@@ -11,6 +11,8 @@ import ChatInterface from "./components/ChatInterface";
 import ResourcesPage from "./components/ResourcesPage";
 import ProfilePage from "./components/ProfilePage";
 import Flashcards from "./components/Flashcards";
+import QuizMaker from "./components/QuizMaker";
+import NotesGenerator from "./components/NotesGenerator";
 import Footer from "./components/Footer";
 import Layout from "./components/Layout";
 
@@ -29,6 +31,9 @@ const App = () => {
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/chat" element={<ChatInterface />} />
               <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/quiz" element={<QuizMaker />} />
+              <Route path="/flashcards" element={<Flashcards />} />
+              <Route path="/notes" element={<NotesGenerator />} />
             </Routes>
           </Layout>
           <Footer />

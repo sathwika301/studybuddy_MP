@@ -5,7 +5,7 @@ import Flashcards from './Flashcards';
 import QuizMaker from './QuizMaker';
 
 const ResourcesPage = () => {
-  const [activeTab, setActiveTab] = useState('upload');
+  const [activeTab, setActiveTab] = useState('notes');
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedFeature, setSelectedFeature] = useState(null);
@@ -31,7 +31,6 @@ const ResourcesPage = () => {
   };
 
   const tabs = [
-    { id: 'upload', label: 'Upload Resources', icon: Upload },
     { id: 'notes', label: 'Generate Notes', icon: FileText },
     { id: 'flashcards', label: 'Create Flashcards', icon: Brain },
     { id: 'quiz', label: 'Generate Quiz', icon: FileQuestion },
@@ -55,7 +54,7 @@ const ResourcesPage = () => {
             Study Resources Hub
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-300">
-            Upload, analyze, and transform your study materials with AI
+            Generate notes, flashcards, and quizzes with AI
           </p>
         </div>
 

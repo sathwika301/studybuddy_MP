@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { ArrowRight, CheckCircle } from 'lucide-react';
 
 const FeatureCard = ({ icon: Icon, title, description, color, features, index }) => {
@@ -49,10 +50,13 @@ const FeatureCard = ({ icon: Icon, title, description, color, features, index })
         </div>
 
         {/* Learn More Button */}
-        <button className="inline-flex items-center space-x-2 text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium group-hover:translate-x-1 transition-all duration-300">
+        <Link
+          to={title === 'AI Chat Assistant' ? '/chat' : `/${title.replace(/\s+/g, '-').toLowerCase()}`}
+          className="inline-flex items-center space-x-2 text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium group-hover:translate-x-1 transition-all duration-300"
+        >
           <span>{title === 'AI Chat Assistant' ? 'Start Using Now' : 'Learn More'}</span>
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
-        </button>
+        </Link>
       </div>
 
       {/* Floating Elements */}
