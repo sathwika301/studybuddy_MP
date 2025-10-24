@@ -1,26 +1,57 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Plus, Users, Search, RefreshCw,
-  Video, Settings, Trash2, Crown
+import { 
+  Plus, Users, Search, RefreshCw, 
+  Video, Settings, Trash2, Crown, Download, Bell, 
+  FileText
 } from "lucide-react";
 import CreateStudyGroup from "./CreateStudyGroup";
-import { studyGroupsAPI, cache } from "../utils/api";
+import CreateChannel from "./CreateChannel";
+import { io } from "socket.io-client";
+import { studyGroupsAPI, channelsAPI, cache } from "../utils/api";
 import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
 
 
 const StudyGroupsPage = () => {
+  const [activeView, setActiveView] = useState('groups');
   const [groups, setGroups] = useState([]);
+  const [channels, setChannels] = useState([]);
   const [myGroups, setMyGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedType, setSelectedType] = useState(null);
   const navigate = useNavigate();
+  const socket = io();
   const { user } = useAuth();
   const { isDark } = useTheme();
+
+
+
+  const dummyChannels = [
+    {
+      _id: 'demo-channel-1',
+      name: 'Web Development',
+      description: 'Frontend and backend development discussions',
+      owner: { _id: 'demo-user', name: 'Demo Owner' },
+      members: Array(15).fill({}),
+      createdAt: new Date(),
+      isDummy: true
+    },
+    {
+      _id: 'demo-channel-2',
+      name: 'Data Science',
+      description: 'Machine learning and data analysis resources',
+      owner: { _id: 'other-user', name: 'Other User' },
+      members: Array(9).fill({}),
+      createdAt: new Date(Date.now() - 172800000),
+      isDummy: true
+    }
+  ];
 
   const fetchData = useCallback(async (forceRefresh = false) => {
     try {
@@ -29,9 +60,10 @@ const StudyGroupsPage = () => {
 
       const cacheKey = 'study_groups_data';
       const cachedData = cache.get(cacheKey);
-
+      
       if (cachedData && !forceRefresh) {
         setGroups(cachedData.allGroups && cachedData.allGroups.length > 0 ? cachedData.allGroups : []);
+        setChannels(cachedData.allChannels && cachedData.allChannels.length > 0 ? cachedData.allChannels : []);
         setMyGroups(cachedData.userGroups || []);
         setLoading(false);
         setRefreshing(false);
@@ -40,6 +72,11 @@ const StudyGroupsPage = () => {
 
       const apiCalls = [
         studyGroupsAPI.getAll({
+          page: 1,
+          limit: 20,
+          search: searchTerm || undefined
+        }),
+        channelsAPI.getAll({
           page: 1,
           limit: 20,
           search: searchTerm || undefined
@@ -53,9 +90,11 @@ const StudyGroupsPage = () => {
       const responses = await Promise.allSettled(apiCalls);
 
       const allGroupsResponse = responses[0];
-
+      const allChannelsResponse = responses[1];
+      
       let fetchedGroups = [];
-
+      let fetchedChannels = [];
+      
       if (allGroupsResponse.status === 'fulfilled') {
         fetchedGroups = allGroupsResponse.value.data.groups || [];
         setGroups(fetchedGroups.length > 0 ? fetchedGroups : []);
@@ -65,15 +104,24 @@ const StudyGroupsPage = () => {
         setGroups([]);
       }
 
-      if (user && responses.length > 1) {
-        const userGroupsResponse = responses[1];
+      if (allChannelsResponse.status === 'fulfilled') {
+        fetchedChannels = allChannelsResponse.value.data.channels || [];
+        setChannels(fetchedChannels.length > 0 ? fetchedChannels : []);
+      } else {
+        console.error('Failed to fetch all channels:', allChannelsResponse.reason);
+        setChannels([]);
+      }
+
+      if (user && responses.length > 2) {
+        const userGroupsResponse = responses[2];
         if (userGroupsResponse.status === 'fulfilled') {
           const userGroups = userGroupsResponse.value.data.groups || [];
           setMyGroups(userGroups);
-
+          
           // Update cache with the actual fetched data
           cache.set(cacheKey, {
             allGroups: fetchedGroups,
+            allChannels: fetchedChannels,
             userGroups: userGroups,
             timestamp: Date.now()
           });
@@ -82,6 +130,7 @@ const StudyGroupsPage = () => {
         // Update cache with the actual fetched data
         cache.set(cacheKey, {
           allGroups: fetchedGroups,
+          allChannels: fetchedChannels,
           userGroups: myGroups,
           timestamp: Date.now()
         });
@@ -91,6 +140,7 @@ const StudyGroupsPage = () => {
       console.error('Error fetching data:', err);
       setError("⚠️ Failed to load study groups. Please check your connection and try again.");
       setGroups([]);
+      setChannels([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -112,6 +162,11 @@ const StudyGroupsPage = () => {
     setShowCreateModal(false);
   };
 
+  const handleChannelCreated = (newChannel) => {
+    setChannels([newChannel, ...channels]);
+    setShowCreateModal(false);
+  };
+
   const handleDeleteItem = async (id, type) => {
     if (type === 'group') {
       try {
@@ -121,6 +176,14 @@ const StudyGroupsPage = () => {
       } catch (error) {
         console.error('Failed to delete group:', error);
         alert('Failed to delete group');
+      }
+    } else if (type === 'channel') {
+      try {
+        await channelsAPI.delete(id);
+        setChannels(channels.filter(channel => channel._id !== id));
+      } catch (error) {
+        console.error('Failed to delete channel:', error);
+        alert('Failed to delete channel');
       }
     }
   };
@@ -140,11 +203,22 @@ const StudyGroupsPage = () => {
     return getUserRole(group) === 'admin';
   };
 
+  const isChannelOwner = (channel) => {
+    return user && channel.owner._id === user._id;
+  };
+
   const filteredGroups = groups.filter((group) => {
     return (
       group.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       group.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
       group.description.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
+
+  const filteredChannels = channels.filter((channel) => {
+    return (
+      channel.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      channel.description.toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
 
@@ -179,12 +253,34 @@ const StudyGroupsPage = () => {
             className="flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl"
           >
             <Plus className="w-5 h-5" />
-            <span>Create Group</span>
+            <span>Create {activeView === 'groups' ? 'Group' : 'Channel'}</span>
           </button>
         </div>
       </div>
 
-
+      {/* Toggle Buttons */}
+      <div className="flex space-x-1 bg-gray-200 dark:bg-gray-700 rounded-lg p-1 mb-6 w-fit">
+        <button
+          onClick={() => setActiveView('groups')}
+          className={`px-6 py-2 rounded-lg transition-all duration-200 ${
+            activeView === 'groups'
+              ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-md'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+          }`}
+        >
+          Groups
+        </button>
+        <button
+          onClick={() => setActiveView('channels')}
+          className={`px-6 py-2 rounded-lg transition-all duration-200 ${
+            activeView === 'channels'
+              ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-md'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+          }`}
+        >
+          Channels
+        </button>
+      </div>
 
       {/* Error */}
       {error && (
@@ -199,7 +295,7 @@ const StudyGroupsPage = () => {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
             type="text"
-            placeholder="Search groups by name or description..."
+            placeholder={`Search ${activeView} by name or description...`}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
@@ -209,75 +305,159 @@ const StudyGroupsPage = () => {
 
       {/* Content Area */}
       <div className="transition-all duration-300">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredGroups.map((group) => (
-            <div
-              key={group._id}
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 group cursor-pointer"
-              onClick={() => {
-                navigate(`/study-groups/${group._id}/details`);
-              }}
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                    {group.name}
-                  </h3>
-                  <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">{group.subject}</p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="flex items-center space-x-1 text-gray-500 dark:text-gray-400">
-                    <Users className="w-4 h-4" />
-                    <span className="text-sm">{group.members?.length || 0}</span>
+        {activeView === 'groups' ? (
+          /* Groups Section */
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredGroups.map((group) => (
+              <div
+                key={group._id}
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 group cursor-pointer"
+                onClick={() => {
+                  setSelectedItem(group);
+                  setSelectedType('group');
+                  navigate(`/study-groups/${group._id}/details`);
+                }}
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                      {group.name}
+                    </h3>
+                    <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">{group.subject}</p>
                   </div>
-                  {isGroupAdmin(group) && (
-                    <Crown className="w-4 h-4 text-yellow-500" />
+                  <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-1 text-gray-500 dark:text-gray-400">
+                      <Users className="w-4 h-4" />
+                      <span className="text-sm">{group.members?.length || 0}</span>
+                    </div>
+                    {isGroupAdmin(group) && (
+                      <Crown className="w-4 h-4 text-yellow-500" />
+                    )}
+                  </div>
+                </div>
+                
+                <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2 text-sm">
+                  {group.description}
+                </p>
+
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    Created {new Date(group.createdAt).toLocaleDateString()}
+                  </span>
+                  {group.isPrivate && (
+                    <span className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs">Private</span>
                   )}
                 </div>
-              </div>
 
-              <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2 text-sm">
-                {group.description}
-              </p>
-
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-xs text-gray-500 dark:text-gray-400">
-                  Created {new Date(group.createdAt).toLocaleDateString()}
-                </span>
-                {group.isPrivate && (
-                  <span className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs">Private</span>
-                )}
-              </div>
-
-              <div className="flex items-center justify-between">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    startVideoCall(group._id);
-                  }}
-                  className="flex items-center space-x-1 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm"
-                >
-                  <Video className="w-4 h-4" />
-                  <span>Video Call</span>
-                </button>
-
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center justify-between">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate(`/study-groups/${group._id}/details`);
+                      startVideoCall(group._id);
                     }}
-                    className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                    className="flex items-center space-x-1 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm"
                   >
-                    <Settings className="w-4 h-4" />
+                    <Video className="w-4 h-4" />
+                    <span>Video Call</span>
                   </button>
 
-                  {group.isDummy && (
+                  <div className="flex items-center space-x-2">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDeleteItem(group._id, 'group');
+                        navigate(`/study-groups/${group._id}/details`);
                       }}
+                      className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                    >
+                      <Settings className="w-4 h-4" />
+                    </button>
+                    
+                    {group.isDummy && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteItem(group._id, 'group');
+                        }}
+                        className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          /* Channels Section */
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredChannels.map((channel) => (
+              <div
+                key={channel._id}
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 group cursor-pointer"
+                onClick={() => {
+                  setSelectedItem(channel);
+                  setSelectedType('channel');
+                  navigate(`/channels/${channel._id}/details`);
+                }}
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                      {channel.name}
+                    </h3>
+                    <p className="text-sm text-purple-600 dark:text-purple-400 mt-1">Channel</p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-1 text-gray-500 dark:text-gray-400">
+                      <Users className="w-4 h-4" />
+                      <span className="text-sm">{channel.members?.length || 0}</span>
+                    </div>
+                    {isChannelOwner(channel) && (
+                      <Crown className="w-4 h-4 text-yellow-500" />
+                    )}
+                  </div>
+                </div>
+                
+                <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2 text-sm">
+                  {channel.description}
+                </p>
+
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    Owner: {channel.owner?.name || 'Unknown'}
+                  </span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    Created {new Date(channel.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    {isChannelOwner(channel) ? (
+                      <>
+                        <button className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300">
+                          <FileText className="w-4 h-4" />
+                        </button>
+                        <button className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">
+                          <Bell className="w-4 h-4" />
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                          <Download className="w-4 h-4" />
+                        </button>
+                        <button className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                          <Bell className="w-4 h-4" />
+                        </button>
+                      </>
+                    )}
+                  </div>
+
+                  {channel.isDummy && (
+                    <button
+                      onClick={() => handleDeleteItem(channel._id, 'channel')}
                       className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -285,19 +465,19 @@ const StudyGroupsPage = () => {
                   )}
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* No Items Found */}
-      {filteredGroups.length === 0 && (
+      {(activeView === 'groups' ? filteredGroups.length === 0 : filteredChannels.length === 0) && (
         <div className="text-center py-12">
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-            No groups found
+            No {activeView} found
           </h3>
           <p className="text-gray-600 dark:text-gray-400">
-            Try adjusting your search or create a new group!
+            Try adjusting your search or create a new {activeView.slice(0, -1)}!
           </p>
         </div>
       )}
@@ -312,7 +492,11 @@ const StudyGroupsPage = () => {
             className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full transition-all transform scale-95 hover:scale-100 duration-300"
             onClick={(e) => e.stopPropagation()}
           >
-            <CreateStudyGroup onGroupCreated={handleGroupCreated} onCancel={() => setShowCreateModal(false)} />
+            {activeView === 'groups' ? (
+              <CreateStudyGroup onGroupCreated={handleGroupCreated} onCancel={() => setShowCreateModal(false)} />
+            ) : (
+              <CreateChannel onChannelCreated={handleChannelCreated} onCancel={() => setShowCreateModal(false)} />
+            )}
           </div>
         </div>
       )}
