@@ -55,7 +55,7 @@ router.get('/:groupId/messages', protect, async (req, res) => {
 router.post('/:groupId/messages', protect, async (req, res) => {
     try {
         const { groupId } = req.params;
-        const { message, messageType = 'text', fileUrl, fileName, fileSize } = req.body;
+        const { message, messageType = 'text', fileUrl, fileName, fileSize, replyTo } = req.body;
 
         // Check if user is a member of the group
         const group = await StudyGroup.findById(groupId);
@@ -63,10 +63,10 @@ router.post('/:groupId/messages', protect, async (req, res) => {
             return res.status(404).json({ success: false, error: 'Study group not found' });
         }
 
-        const isMember = group.members.some(member => 
+        const isMember = group.members.some(member =>
             member.user.toString() === req.user.id
         );
-        
+
         if (!isMember) {
             return res.status(403).json({ success: false, error: 'Not a member of this group' });
         }
@@ -78,11 +78,12 @@ router.post('/:groupId/messages', protect, async (req, res) => {
             messageType,
             fileUrl,
             fileName,
-            fileSize
+            fileSize,
+            replyTo
         });
 
         await newMessage.save();
-        
+
         // Update group stats
         await StudyGroup.findByIdAndUpdate(groupId, {
             $inc: { 'stats.totalMessages': 1 },
@@ -90,7 +91,8 @@ router.post('/:groupId/messages', protect, async (req, res) => {
         });
 
         const populatedMessage = await GroupMessage.findById(newMessage._id)
-            .populate('sender', 'name profileImage');
+            .populate('sender', 'name profileImage')
+            .populate('replyTo');
 
         res.status(201).json({ success: true, message: populatedMessage });
     } catch (error) {

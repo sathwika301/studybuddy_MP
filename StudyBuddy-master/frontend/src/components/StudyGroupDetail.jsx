@@ -1,10 +1,20 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
+import {
+  Send, Smile, Paperclip, MoreVertical, Reply, Edit3,
+  Trash2, Heart, ThumbsUp, Laugh, Angry, Sad, Check, CheckCheck
+} from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import { useTheme } from "../contexts/ThemeContext";
 
 const StudyGroupDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { isDark } = useTheme();
+  const messagesEndRef = useRef(null);
+
   const [group, setGroup] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
@@ -12,6 +22,13 @@ const StudyGroupDetail = () => {
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("chat");
   const [newResource, setNewResource] = useState({ title: "", url: "", type: "article" });
+
+  // WhatsApp-like features
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [editingMessage, setEditingMessage] = useState(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [isTyping, setIsTyping] = useState(false);
 
   useEffect(() => {
     fetchGroupDetails();
@@ -70,15 +87,23 @@ const StudyGroupDetail = () => {
 
     try {
       const token = localStorage.getItem("token");
+      const payload = { message: newMessage };
+
+      // Include replyTo if replying
+      if (replyingTo) {
+        payload.replyTo = replyingTo._id;
+      }
+
       const response = await axios.post(
         `http://localhost:5000/api/group-chat/${id}/messages`,
-        { message: newMessage },
+        payload,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
       setMessages([...messages, response.data.message]);
       setNewMessage("");
+      setReplyingTo(null); // Clear reply state
     } catch (err) {
       console.error("Failed to send message:", err);
     }
@@ -102,7 +127,72 @@ const StudyGroupDetail = () => {
     }
   };
 
-  const isMember = group?.members?.some(member => member.user._id === localStorage.getItem("userId"));
+  const isMember = group?.members?.some(member => member.user._id === user?._id);
+
+  // Scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // WhatsApp-like functions
+  const handleReply = (message) => {
+    setReplyingTo(message);
+  };
+
+  const handleEdit = (message) => {
+    setEditingMessage(message);
+    setNewMessage(message.message);
+  };
+
+  const handleDelete = async (messageId) => {
+    if (!confirm('Are you sure you want to delete this message?')) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(
+        `http://localhost:5000/api/group-chat/${id}/messages/${messageId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setMessages(messages.filter(msg => msg._id !== messageId));
+    } catch (err) {
+      console.error("Failed to delete message:", err);
+    }
+  };
+
+  const handleReaction = async (messageId, emoji) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post(
+        `http://localhost:5000/api/group-chat/${id}/messages/${messageId}/reactions`,
+        { emoji },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      // Refresh messages to show updated reactions
+      fetchMessages();
+    } catch (err) {
+      console.error("Failed to add reaction:", err);
+    }
+  };
+
+  const formatTime = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diff = now - date;
+
+    if (diff < 60000) return 'now'; // less than 1 minute
+    if (diff < 3600000) return `${Math.floor(diff / 60000)}m`; // minutes
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h`; // hours
+    return date.toLocaleDateString(); // date
+  };
+
+  const getMessageStatus = (message) => {
+    // Simple implementation - in real WhatsApp, this would track delivery/read status
+    return <Check className="w-3 h-3 text-gray-400" />;
+  };
 
   if (loading) {
     return <div className="text-center mt-10">Loading group...</div>;
@@ -188,41 +278,162 @@ const StudyGroupDetail = () => {
 
               <div className="p-4">
                 {activeTab === "chat" && (
-                  <div>
-                    <div className="h-96 overflow-y-auto mb-4 border rounded p-2">
-                      {messages.map(message => (
-                        <div key={message._id} className="mb-3">
-                          <div className="flex items-start space-x-2">
-                            <img
-                              src={message.sender.profileImage || "/default-avatar.png"}
-                              alt={message.sender.name}
-                              className="w-8 h-8 rounded-full"
-                            />
-                            <div>
-                              <div className="font-semibold text-sm">{message.sender.name}</div>
-                              <div className="text-gray-700">{message.message}</div>
-                              <div className="text-xs text-gray-500">
-                                {new Date(message.createdAt).toLocaleString()}
+                  <div className="flex flex-col h-[600px]">
+                    {/* Messages Container */}
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 rounded-t-lg">
+                      {messages.map(message => {
+                        const isOwnMessage = message.sender._id === user?._id;
+                        return (
+                          <div key={message._id} className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
+                            <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                              isOwnMessage
+                                ? 'bg-blue-500 text-white'
+                                : 'bg-white border border-gray-200'
+                            }`}>
+                              {/* Reply indicator */}
+                              {message.replyTo && (
+                                <div className="text-xs opacity-70 mb-2 p-2 bg-black bg-opacity-10 rounded">
+                                  Replying to: {message.replyTo.message.substring(0, 50)}...
+                                </div>
+                              )}
+
+                              {/* Message content */}
+                              <div className="text-sm">{message.message}</div>
+
+                              {/* Reactions */}
+                              {message.reactions && message.reactions.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-2">
+                                  {message.reactions.map((reaction, idx) => (
+                                    <span key={idx} className="text-xs bg-white bg-opacity-20 rounded px-1">
+                                      {reaction.emoji} {reaction.count}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+
+                              {/* Message footer */}
+                              <div className={`flex items-center justify-between mt-1 text-xs ${
+                                isOwnMessage ? 'text-blue-100' : 'text-gray-500'
+                              }`}>
+                                <span>{formatTime(message.createdAt)}</span>
+                                {isOwnMessage && getMessageStatus(message)}
                               </div>
                             </div>
+
+                            {/* Message actions menu */}
+                            <div className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <div className="relative">
+                                <button
+                                  onClick={() => setShowEmojiPicker(message._id)}
+                                  className="p-1 hover:bg-gray-200 rounded-full"
+                                >
+                                  <Smile className="w-4 h-4" />
+                                </button>
+
+                                {/* Emoji picker */}
+                                {showEmojiPicker === message._id && (
+                                  <div className="absolute bottom-full mb-2 bg-white border rounded-lg p-2 shadow-lg">
+                                    <div className="flex space-x-1">
+                                      {['👍', '❤️', '😂', '😮', '😢', '😡'].map(emoji => (
+                                        <button
+                                          key={emoji}
+                                          onClick={() => {
+                                            handleReaction(message._id, emoji);
+                                            setShowEmojiPicker(null);
+                                          }}
+                                          className="text-lg hover:bg-gray-100 rounded p-1"
+                                        >
+                                          {emoji}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+
+                              <button
+                                onClick={() => handleReply(message)}
+                                className="p-1 hover:bg-gray-200 rounded-full block"
+                              >
+                                <Reply className="w-4 h-4" />
+                              </button>
+
+                              {message.sender._id === user?._id && (
+                                <>
+                                  <button
+                                    onClick={() => handleEdit(message)}
+                                    className="p-1 hover:bg-gray-200 rounded-full block"
+                                  >
+                                    <Edit3 className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDelete(message._id)}
+                                    className="p-1 hover:bg-red-200 rounded-full block text-red-600"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                      <div ref={messagesEndRef} />
+                    </div>
+
+                    {/* Reply indicator */}
+                    {replyingTo && (
+                      <div className="bg-blue-50 border-l-4 border-blue-500 p-3 flex justify-between items-center">
+                        <div>
+                          <div className="text-sm font-medium text-blue-800">
+                            Replying to {replyingTo.sender.name}
+                          </div>
+                          <div className="text-sm text-blue-600">
+                            {replyingTo.message.substring(0, 100)}...
                           </div>
                         </div>
-                      ))}
-                    </div>
-                    <form onSubmit={handleSendMessage} className="flex space-x-2">
-                      <input
-                        type="text"
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        placeholder="Type a message..."
-                        className="flex-1 px-3 py-2 border rounded-md"
-                      />
-                      <button
-                        type="submit"
-                        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                      >
-                        Send
-                      </button>
+                        <button
+                          onClick={() => setReplyingTo(null)}
+                          className="text-blue-500 hover:text-blue-700"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Message input */}
+                    <form onSubmit={handleSendMessage} className="p-4 bg-white border-t">
+                      <div className="flex items-center space-x-2">
+                        <button
+                          type="button"
+                          className="p-2 text-gray-500 hover:text-gray-700"
+                        >
+                          <Paperclip className="w-5 h-5" />
+                        </button>
+
+                        <input
+                          type="text"
+                          value={newMessage}
+                          onChange={(e) => setNewMessage(e.target.value)}
+                          placeholder="Type a message..."
+                          className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+
+                        <button
+                          type="button"
+                          className="p-2 text-gray-500 hover:text-gray-700"
+                        >
+                          <Smile className="w-5 h-5" />
+                        </button>
+
+                        <button
+                          type="submit"
+                          disabled={!newMessage.trim()}
+                          className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <Send className="w-5 h-5" />
+                        </button>
+                      </div>
                     </form>
                   </div>
                 )}
