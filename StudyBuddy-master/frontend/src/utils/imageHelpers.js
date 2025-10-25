@@ -4,7 +4,12 @@ export const getAvatarUrl = (avatarUrl) => {
   if (!avatarUrl || avatarUrl === '/default-avatar.png') {
     return 'https://ui-avatars.com/api/?name=User&background=6366f1&color=fff&size=150';
   }
-  return avatarUrl;
+  if (avatarUrl.startsWith('http')) {
+    return avatarUrl;
+  }
+  // Relative path, prepend backend URL
+  const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
+  return `${backendUrl}${avatarUrl}`;
 };
 
 export const getPlaceholderImage = (text = 'Image', size = 150) => {

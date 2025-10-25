@@ -107,6 +107,30 @@ const quizSchema = new mongoose.Schema({
         confidence: Number,
         processingTime: Number
     },
+    history: [{
+        version: Number,
+        title: String,
+        description: String,
+        subject: String,
+        topic: String,
+        difficulty: String,
+        questions: [{
+            question: String,
+            type: String,
+            options: [{
+                text: String,
+                isCorrect: Boolean
+            }],
+            correctAnswer: String,
+            explanation: String,
+            points: Number
+        }],
+        generatedAt: {
+            type: Date,
+            default: Date.now
+        },
+        prompt: String
+    }],
     usageStats: {
         totalAttempts: {
             type: Number,

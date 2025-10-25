@@ -20,7 +20,7 @@ try {
 
 // AI Configuration
 const aiConfig = {
-  model: "gemini-2.5-flash", // or "gemini-1.5-pro"
+  model: "gemini-1.5-flash", // or "gemini-1.5-pro"
   maxTokens: 4000,
   temperature: 0.7,
   systemPrompt: `You are StudyBuddy AI, a friendly and knowledgeable learning assistant. Your role is to help students understand concepts, provide study guidance, and support their learning journey. You should:

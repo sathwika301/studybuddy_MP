@@ -82,12 +82,27 @@ router.get('/:id', protect, async (req, res) => {
     try {
         const quiz = await Quiz.findOne({ _id: req.params.id, author: req.user._id })
             .populate('author', 'name email');
-        
+
         if (!quiz) {
             return res.status(404).json({ success: false, error: 'Quiz not found' });
         }
-        
+
         res.json({ success: true, quiz });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Get quiz history
+router.get('/:id/history', protect, async (req, res) => {
+    try {
+        const quiz = await Quiz.findOne({ _id: req.params.id, author: req.user._id });
+
+        if (!quiz) {
+            return res.status(404).json({ success: false, error: 'Quiz not found' });
+        }
+
+        res.json({ success: true, history: quiz.history || [] });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
@@ -100,8 +115,18 @@ router.post('/', protect, async (req, res) => {
             ...req.body,
             author: req.user._id
         });
-        
+
         await quiz.save();
+
+        // Update user progress
+        const User = require('../models/User');
+        await User.findByIdAndUpdate(req.user._id, {
+            $inc: {
+                'profile.progress.completedQuizzes': 1,
+                'profile.progress.totalStudyTime': 20 // Assume 20 minutes per quiz
+            }
+        });
+
         res.status(201).json({ success: true, quiz });
     } catch (error) {
         res.status(400).json({ success: false, error: error.message });

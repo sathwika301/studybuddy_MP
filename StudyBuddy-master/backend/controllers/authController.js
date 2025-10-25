@@ -37,17 +37,15 @@ const register = async (req, res) => {
     user.refreshToken = hashedRefreshToken;
     await user.save();
 
+    // Fetch the complete user data (excluding password)
+    const fullUser = await User.findById(user._id);
+
     res.status(201).json({
       success: true,
       message: 'User registered successfully',
       accessToken,
       refreshToken,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role
-      }
+      user: fullUser
     });
   } catch (error) {
     res.status(500).json({
@@ -90,17 +88,15 @@ const login = async (req, res) => {
     user.refreshToken = hashedRefreshToken;
     await user.save();
 
+    // Fetch the complete user data (excluding password)
+    const fullUser = await User.findById(user._id);
+
     res.status(200).json({
       success: true,
       message: 'Login successful',
       accessToken,
       refreshToken,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role
-      }
+      user: fullUser
     });
   } catch (error) {
     res.status(500).json({
@@ -131,9 +127,12 @@ const getMe = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const { name, age, course } = req.body;
+    const { name, phone, location, bio } = req.body;
     const updateData = {};
     if (name !== undefined) updateData.name = name;
+    if (phone !== undefined) updateData.phone = phone;
+    if (location !== undefined) updateData.location = location;
+    if (bio !== undefined) updateData.bio = bio;
 
     // Handle avatar file upload
     if (req.file) {
@@ -147,13 +146,6 @@ const updateProfile = async (req, res) => {
       }
       // Save new avatar path relative to backend root
       updateData.avatar = '/uploads/avatars/' + req.file.filename;
-    }
-
-    // Handle profile updates
-    if (age !== undefined || course !== undefined) {
-      updateData.profile = {};
-      if (age !== undefined) updateData.profile.age = age;
-      if (course !== undefined) updateData.profile.course = course;
     }
 
     const updatedUser = await User.findByIdAndUpdate(
@@ -292,6 +284,49 @@ const deleteAvatar = async (req, res) => {
   }
 };
 
+// @desc    Get user progress and stats
+// @route   GET /api/auth/progress
+// @access  Private
+const getUserProgress = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    // Get counts from different collections
+    const StudyNote = require('../models/StudyNote');
+    const Quiz = require('../models/Quiz');
+    const Flashcard = require('../models/Flashcard');
+
+    const notesCount = await StudyNote.countDocuments({ author: req.user.id });
+    const quizzesTaken = await Quiz.countDocuments({ author: req.user.id });
+    const flashcardsCount = await Flashcard.countDocuments({ author: req.user.id });
+
+    // Calculate weekly progress (mock for now - in real app, track actual study time)
+    const weeklyProgress = Math.min(notesCount * 5 + quizzesTaken * 10 + flashcardsCount * 2, 100);
+
+    const progress = {
+      notesCount,
+      quizzesTaken,
+      flashcardsCount,
+      studyStreak: user.profile?.progress?.streak || 0,
+      weeklyProgress,
+      totalStudyTime: user.profile?.progress?.totalStudyTime || 0,
+      completedQuizzes: user.profile?.progress?.completedQuizzes || 0,
+      createdNotes: user.profile?.progress?.createdNotes || 0,
+      createdFlashcards: user.profile?.progress?.createdFlashcards || 0
+    };
+
+    res.status(200).json({
+      success: true,
+      progress
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -299,5 +334,6 @@ module.exports = {
   updateProfile,
   deleteAvatar,
   logout,
-  refreshToken
+  refreshToken,
+  getUserProgress
 };

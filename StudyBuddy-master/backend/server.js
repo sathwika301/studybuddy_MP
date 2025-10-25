@@ -16,6 +16,7 @@ const studyGroupRoutes = require('./routes/studyGroupRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const channelRoutes = require('./routes/channelRoutes');
 const documentRoutes = require('./routes/documentRoutes');
+const newsletterRoutes = require('./routes/newsletterRoutes');
 
 // Load environment variables
 dotenv.config();
@@ -60,6 +61,7 @@ app.use('/api/channels', channelRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/group-chat', groupChatRoutes);
 app.use('/api/documents', documentRoutes);
+app.use('/api/newsletter', newsletterRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

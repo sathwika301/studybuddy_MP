@@ -129,4 +129,19 @@ const cache = {
   }
 };
 
+// API endpoints for newsletter
+export const newsletterAPI = {
+  // Subscribe to newsletter
+  subscribe: (data) => api.post('/newsletter/subscribe', data),
+
+  // Unsubscribe from newsletter
+  unsubscribe: (data) => api.post('/newsletter/unsubscribe', data),
+
+  // Get subscriber status
+  getStatus: (email) => api.get(`/newsletter/status/${email}`),
+
+  // Update preferences
+  updatePreferences: (data) => api.put('/newsletter/preferences', data),
+};
+
 export { api, cache };

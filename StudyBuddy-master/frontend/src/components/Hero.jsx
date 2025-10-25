@@ -8,7 +8,7 @@ const Hero = () => {
   const navigate = useNavigate();
   const [selectedFeature, setSelectedFeature] = useState(null);
   const [showChatPrompt, setShowChatPrompt] = useState(false);
-  const [showGroupPrompt, setShowGroupPrompt] = useState(false);
+
 
   const features = [
     {
@@ -18,15 +18,6 @@ const Hero = () => {
       details: 'Our AI assistant can answer your questions, explain complex concepts, and provide personalized learning guidance 24/7.',
       color: 'from-blue-500 to-cyan-500',
       stat: '100K+ Conversations',
-      requiresAuth: true
-    },
-    {
-      icon: Users,
-      title: 'Study Groups',
-      description: 'Collaborate with peers in real-time study sessions and share resources.',
-      details: 'Join or create study groups where you can share notes, discuss topics, and work together on assignments. Our platform supports real-time collaboration and resource sharing.',
-      color: 'from-green-500 to-emerald-500',
-      stat: '500+ Active Groups',
       requiresAuth: true
     },
     {
@@ -51,8 +42,6 @@ const Hero = () => {
     if (feature.requiresAuth && !user) {
       if (feature.title === 'AI Chat Assistant') {
         setShowChatPrompt(true);
-      } else if (feature.title === 'Study Groups') {
-        setShowGroupPrompt(true);
       }
       return;
     }
@@ -65,7 +54,6 @@ const Hero = () => {
 
   const closeAuthPrompt = () => {
     setShowChatPrompt(false);
-    setShowGroupPrompt(false);
   };
 
   const handleStartUsingNow = () => {
@@ -74,12 +62,6 @@ const Hero = () => {
         navigate('/chat');
       } else {
         setShowChatPrompt(true);
-      }
-    } else if (selectedFeature.title === 'Study Groups') {
-      if (user) {
-        navigate('/study-groups');
-      } else {
-        setShowGroupPrompt(true);
       }
     } else if (selectedFeature.title === 'Smart Quizzes') {
       navigate('/quiz');
@@ -195,13 +177,13 @@ const Hero = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="flex justify-center gap-8">
             {features.map((feature, index) => {
               const IconComponent = feature.icon;
               return (
                 <div
                   key={index}
-                  className="group relative bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-4 cursor-pointer border border-gray-100 dark:border-gray-700"
+                  className="w-80 group relative bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-4 cursor-pointer border border-gray-100 dark:border-gray-700"
                   onClick={() => openFeatureModal(feature)}
                 >
                   {/* Feature Icon */}
@@ -360,48 +342,7 @@ const Hero = () => {
         </div>
       )}
 
-      {/* Auth Prompt Modal - Study Groups */}
-      {showGroupPrompt && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-8 relative">
-            <button
-              onClick={closeAuthPrompt}
-              className="absolute top-6 right-6 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-200"
-            >
-              <X className="w-6 h-6" />
-            </button>
-            
-            <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <Users className="w-8 h-8 text-white" />
-            </div>
-            
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 text-center">
-              Join Study Groups
-            </h3>
-            
-            <p className="text-gray-600 dark:text-gray-300 mb-6 text-center leading-relaxed">
-              Study groups are available to registered users. Sign in or create an account to join existing groups or create your own study community.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                to="/signup"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 text-center"
-                onClick={closeAuthPrompt}
-              >
-                Create Account
-              </Link>
-              <Link
-                to="/login"
-                className="border-2 border-gray-300 text-gray-700 dark:text-gray-300 dark:border-gray-600 px-6 py-3 rounded-xl font-semibold hover:border-blue-500 hover:text-blue-600 dark:hover:border-blue-400 dark:hover:text-blue-400 transition-all duration-300 text-center"
-                onClick={closeAuthPrompt}
-              >
-                Sign In
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 };

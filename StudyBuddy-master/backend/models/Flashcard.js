@@ -118,6 +118,24 @@ const flashcardSchema = new mongoose.Schema({
         confidence: Number,
         processingTime: Number
     },
+    history: [{
+        version: Number,
+        title: String,
+        subject: String,
+        topic: String,
+        cards: [{
+            front: String,
+            back: String,
+            hint: String,
+            difficulty: String,
+            tags: [String]
+        }],
+        generatedAt: {
+            type: Date,
+            default: Date.now
+        },
+        prompt: String
+    }],
     createdAt: {
         type: Date,
         default: Date.now

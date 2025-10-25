@@ -102,8 +102,18 @@ router.post('/', protect, async (req, res) => {
             ...req.body,
             author: req.user._id
         });
-        
+
         await note.save();
+
+        // Update user progress
+        const User = require('../models/User');
+        await User.findByIdAndUpdate(req.user._id, {
+            $inc: {
+                'profile.progress.createdNotes': 1,
+                'profile.progress.totalStudyTime': 15 // Assume 15 minutes per note
+            }
+        });
+
         res.status(201).json({ success: true, note });
     } catch (error) {
         res.status(400).json({ success: false, error: error.message });

@@ -13,6 +13,7 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [userProgress, setUserProgress] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -88,12 +89,20 @@ export const AuthProvider = ({ children }) => {
     setUser(prevUser => ({ ...prevUser, ...userData }));
   };
 
-  const changePassword = async (currentPassword, newPassword) => {
+  const fetchUserProgress = async () => {
     try {
-      const response = await axios.put('http://localhost:5000/api/auth/change-password', {
-        currentPassword,
-        newPassword
-      });
+      const response = await axios.get('http://localhost:5000/api/auth/progress');
+      setUserProgress(response.data.progress);
+      return response.data.progress;
+    } catch (error) {
+      console.error('Failed to fetch user progress:', error);
+      return null;
+    }
+  };
+
+  const changePassword = async (passwordData) => {
+    try {
+      const response = await axios.put('http://localhost:5000/api/auth/change-password', passwordData);
 
       return { success: true, message: response.data.message };
     } catch (error) {
@@ -104,14 +113,37 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateProfile = async (profileData) => {
+    try {
+      const response = await axios.put('http://localhost:5000/api/auth/profile', profileData, {
+        headers: {
+          'Content-Type': profileData instanceof FormData ? 'multipart/form-data' : 'application/json'
+        }
+      });
+
+      // Update local user state with the response
+      setUser(response.data.user);
+
+      return { success: true, message: response.data.message || 'Profile updated successfully' };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Profile update failed'
+      };
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
+      userProgress,
       loading,
       login,
       register,
       logout,
       updateUser,
+      updateProfile,
+      fetchUserProgress,
       changePassword
     }}>
       {children}

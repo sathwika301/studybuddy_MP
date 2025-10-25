@@ -2,7 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const { body } = require('express-validator');
-const { register, login, getMe, updateProfile, logout, refreshToken, deleteAvatar } = require('../controllers/authController');
+const { register, login, getMe, updateProfile, logout, refreshToken, deleteAvatar, getUserProgress } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
 
 // Configure multer for avatar uploads
@@ -48,6 +48,7 @@ router.post('/signup', registerValidation, register);
 router.post('/login', loginValidation, login);
 router.post('/refresh', refreshToken);
 router.get('/me', protect, getMe);
+router.get('/progress', protect, getUserProgress);
 router.put('/profile', protect, upload.single('avatar'), updateProfile);
 router.delete('/profile/avatar', protect, deleteAvatar);
 router.post('/logout', protect, logout);

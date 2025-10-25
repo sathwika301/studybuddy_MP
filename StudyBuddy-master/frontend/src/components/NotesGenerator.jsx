@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { FileText, Download, Copy, Sparkles, Loader2 } from 'lucide-react';
+import { FileText, Download, Copy, Sparkles, Loader2, History, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../utils/api';
 
@@ -13,6 +13,10 @@ const NotesGenerator = () => {
     const [isGenerating, setIsGenerating] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [showHistory, setShowHistory] = useState(false);
+    const [notesHistory, setNotesHistory] = useState([]);
+    const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+    const [selectedNote, setSelectedNote] = useState(null);
 
     const subjects = [
         'Algorithms', 'Art', 'Biology', 'Business Studies', 'Chemistry', 'Computer Networks',
@@ -79,6 +83,8 @@ const NotesGenerator = () => {
 
             if (response.status === 201 || response.data.success) {
                 setSuccess('Notes saved to your library!');
+                // Reload notes history to include the newly saved note
+                loadNotesHistory();
             } else {
                 setError(response.data.error || 'Failed to save notes');
             }
@@ -105,6 +111,69 @@ const NotesGenerator = () => {
         URL.revokeObjectURL(url);
     };
 
+    // Load notes history
+    const loadNotesHistory = async () => {
+        if (!user) return;
+
+        setIsLoadingHistory(true);
+        try {
+            const response = await api.get('/study-notes');
+            if (response.data.success) {
+                const historyItems = response.data.notes
+                    .filter(note => note.aiGenerated) // Only show AI-generated notes
+                    .map(note => ({
+                        id: note._id,
+                        title: note.title,
+                        subject: note.subject,
+                        topic: note.topic,
+                        content: note.content,
+                        generatedAt: new Date(note.createdAt),
+                        difficulty: note.difficulty
+                    }))
+                    .sort((a, b) => b.generatedAt - a.generatedAt);
+                setNotesHistory(historyItems);
+            }
+        } catch (err) {
+            console.error('Failed to load notes history:', err);
+        } finally {
+            setIsLoadingHistory(false);
+        }
+    };
+
+    // Toggle history view
+    const toggleHistory = () => {
+        setShowHistory(!showHistory);
+        if (!showHistory && notesHistory.length === 0) {
+            loadNotesHistory();
+        }
+    };
+
+    // Select a note from history
+    const selectNote = (note) => {
+        setSelectedNote(note);
+        setGeneratedNotes(note.content);
+        setTopic(note.topic);
+        setSubject(note.subject);
+        setDifficulty(note.difficulty);
+        setSuccess('Note loaded from history!');
+    };
+
+    // Close selected note view
+    const closeSelectedNote = () => {
+        setSelectedNote(null);
+        setGeneratedNotes('');
+        setTopic('');
+        setSubject('');
+        setDifficulty('intermediate');
+    };
+
+    // Load history on component mount
+    useEffect(() => {
+        if (user) {
+            loadNotesHistory();
+        }
+    }, [user]);
+
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
             <div className="container mx-auto px-4 max-w-4xl">
@@ -118,6 +187,18 @@ const NotesGenerator = () => {
                 </div>
 
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Generate New Notes</h2>
+                        <button
+                            onClick={toggleHistory}
+                            className="flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                        >
+                            <History className="w-4 h-4 mr-2" />
+                            {showHistory ? 'Hide History' : 'Show History'}
+                            {showHistory ? <ChevronUp className="w-4 h-4 ml-2" /> : <ChevronDown className="w-4 h-4 ml-2" />}
+                        </button>
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -131,7 +212,7 @@ const NotesGenerator = () => {
                                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                             />
                         </div>
-                        
+
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Subject
@@ -151,7 +232,7 @@ const NotesGenerator = () => {
                                 ))}
                             </datalist>
                         </div>
-                        
+
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Difficulty Level
@@ -186,6 +267,59 @@ const NotesGenerator = () => {
                         )}
                     </button>
                 </div>
+
+                {showHistory && (
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-6">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Notes History</h3>
+                        {isLoadingHistory ? (
+                            <div className="flex items-center justify-center py-8">
+                                <Loader2 className="w-6 h-6 animate-spin text-primary-600" />
+                                <span className="ml-2 text-gray-600 dark:text-gray-400">Loading history...</span>
+                            </div>
+                        ) : notesHistory.length === 0 ? (
+                            <p className="text-gray-600 dark:text-gray-400 text-center py-8">No notes history found.</p>
+                        ) : (
+                            <div className="space-y-4">
+                                {notesHistory.map((item, index) => (
+                                    <div
+                                        key={index}
+                                        className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                        onClick={() => selectNote(item)}
+                                    >
+                                        <div className="flex items-center justify-between mb-2">
+                                            <h4 className="font-medium text-gray-900 dark:text-white">{item.title}</h4>
+                                            <span className="text-sm text-gray-500 dark:text-gray-400">
+                                                {item.generatedAt.toLocaleDateString()} {item.generatedAt.toLocaleTimeString()}
+                                            </span>
+                                        </div>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                                            Subject: {item.subject} | Topic: {item.topic}
+                                        </p>
+                                        <div className="text-sm text-gray-700 dark:text-gray-300 line-clamp-3">
+                                            {item.content ? (
+                                                <ReactMarkdown
+                                                    components={{
+                                                        h1: ({ children }) => <h1 className="text-sm font-bold">{children}</h1>,
+                                                        h2: ({ children }) => <h2 className="text-sm font-bold">{children}</h2>,
+                                                        h3: ({ children }) => <h3 className="text-sm font-bold">{children}</h3>,
+                                                        p: ({ children }) => <p className="text-sm">{children}</p>,
+                                                        ul: ({ children }) => <ul className="text-sm ml-4">{children}</ul>,
+                                                        ol: ({ children }) => <ol className="text-sm ml-4">{children}</ol>,
+                                                        li: ({ children }) => <li className="text-sm">{children}</li>,
+                                                    }}
+                                                >
+                                                    {item.content.substring(0, 300)}...
+                                                </ReactMarkdown>
+                                            ) : (
+                                                'Content preview not available'
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {error && (
                     <div className="bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
@@ -258,4 +392,3 @@ const NotesGenerator = () => {
 };
 
 export default NotesGenerator;
-// ...existing code...

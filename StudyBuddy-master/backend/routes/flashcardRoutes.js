@@ -46,12 +46,27 @@ router.get('/:id', protect, async (req, res) => {
     try {
         const flashcard = await Flashcard.findOne({ _id: req.params.id, author: req.user._id })
             .populate('author', 'name email');
-        
+
         if (!flashcard) {
             return res.status(404).json({ success: false, error: 'Flashcard not found' });
         }
-        
+
         res.json({ success: true, flashcard });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Get flashcard history
+router.get('/:id/history', protect, async (req, res) => {
+    try {
+        const flashcard = await Flashcard.findOne({ _id: req.params.id, author: req.user._id });
+
+        if (!flashcard) {
+            return res.status(404).json({ success: false, error: 'Flashcard not found' });
+        }
+
+        res.json({ success: true, history: flashcard.history || [] });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
@@ -64,8 +79,18 @@ router.post('/', protect, async (req, res) => {
             ...req.body,
             author: req.user._id
         });
-        
+
         await flashcard.save();
+
+        // Update user progress
+        const User = require('../models/User');
+        await User.findByIdAndUpdate(req.user._id, {
+            $inc: {
+                'profile.progress.createdFlashcards': 1,
+                'profile.progress.totalStudyTime': 10 // Assume 10 minutes per flashcard set
+            }
+        });
+
         res.status(201).json({ success: true, flashcard });
     } catch (error) {
         res.status(400).json({ success: false, error: error.message });

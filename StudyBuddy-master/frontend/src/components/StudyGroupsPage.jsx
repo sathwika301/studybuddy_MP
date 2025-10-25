@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
-  Plus, Users, Search, RefreshCw, 
-  Video, Settings, Trash2, Crown, Download, Bell, 
+import {
+  Plus, Users, Search, RefreshCw,
+  Settings, Trash2, Crown, Download, Bell,
   FileText
 } from "lucide-react";
 import CreateStudyGroup from "./CreateStudyGroup";
@@ -188,10 +188,7 @@ const StudyGroupsPage = () => {
     }
   };
 
-  const startVideoCall = (groupId) => {
-    alert(`Starting video call for group ${groupId}`);
-    // Implement actual video call functionality here
-  };
+
 
   const getUserRole = (group) => {
     if (!user) return null;
@@ -349,18 +346,7 @@ const StudyGroupsPage = () => {
                   )}
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      startVideoCall(group._id);
-                    }}
-                    className="flex items-center space-x-1 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm"
-                  >
-                    <Video className="w-4 h-4" />
-                    <span>Video Call</span>
-                  </button>
-
+                <div className="flex items-center justify-end">
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={(e) => {
@@ -371,7 +357,7 @@ const StudyGroupsPage = () => {
                     >
                       <Settings className="w-4 h-4" />
                     </button>
-                    
+
                     {group.isDummy && (
                       <button
                         onClick={(e) => {

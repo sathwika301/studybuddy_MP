@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { getAvatarUrl } from '../utils/imageHelpers';
-import { 
-    User, 
-    Mail, 
-    Phone, 
-    MapPin, 
-    Edit3, 
-    Save, 
-    X, 
-    Camera, 
-    Lock, 
-    Eye, 
+import {
+    User,
+    Mail,
+    Phone,
+    MapPin,
+    Edit3,
+    Save,
+    X,
+    Camera,
+    Lock,
+    Eye,
     EyeOff,
     GraduationCap,
     Calendar,
@@ -19,11 +19,14 @@ import {
     Trophy,
     Settings,
     Shield,
-    Loader2
+    Loader2,
+    Brain,
+    Award,
+    TrendingUp
 } from 'lucide-react';
 
 const ProfilePage = () => {
-    const { user, updateProfile, changePassword, loading: authLoading } = useAuth();
+    const { user, userProgress, updateProfile, changePassword, fetchUserProgress, loading: authLoading } = useAuth();
     
     const [isEditing, setIsEditing] = useState(false);
     const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -63,6 +66,16 @@ const ProfilePage = () => {
             });
         }
     }, [user]);
+
+    // Fetch user progress on component mount
+    useEffect(() => {
+        const loadUserProgress = async () => {
+            if (user && fetchUserProgress) {
+                await fetchUserProgress();
+            }
+        };
+        loadUserProgress();
+    }, [user, fetchUserProgress]);
 
     const handleProfileChange = (e) => {
         const { name, value } = e.target;
@@ -122,16 +135,26 @@ const ProfilePage = () => {
     const handleSaveProfile = async () => {
         setIsLoading(true);
         setSuccessMessage('');
-        
+
         try {
-            const result = await updateProfile({
-                name: profileData.name,
-                phone: profileData.phone,
-                location: profileData.location,
-                bio: profileData.bio,
-                avatar: profileData.avatar
-            });
-            
+            // Prepare FormData for profile update
+            const formData = new FormData();
+            formData.append('name', profileData.name);
+            formData.append('phone', profileData.phone);
+            formData.append('location', profileData.location);
+            formData.append('bio', profileData.bio);
+
+            // If avatar is a base64 string, convert it to a file
+            if (profileData.avatar && profileData.avatar.startsWith('data:image')) {
+                // Convert base64 to blob
+                const response = await fetch(profileData.avatar);
+                const blob = await response.blob();
+                const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
+                formData.append('avatar', file);
+            }
+
+            const result = await updateProfile(formData);
+
             if (result.success) {
                 setSuccessMessage(result.message || 'Profile updated successfully');
                 setIsEditing(false);
@@ -568,7 +591,7 @@ const ProfilePage = () => {
                                         <span className="text-gray-600 dark:text-gray-400">Study Notes</span>
                                     </div>
                                     <span className="font-semibold text-gray-900 dark:text-white">
-                                        {user?.progress?.notesCount || 0}
+                                        {userProgress?.notesCount || 0}
                                     </span>
                                 </div>
                                 <div className="flex items-center justify-between">
@@ -577,7 +600,7 @@ const ProfilePage = () => {
                                         <span className="text-gray-600 dark:text-gray-400">Quizzes Taken</span>
                                     </div>
                                     <span className="font-semibold text-gray-900 dark:text-white">
-                                        {user?.progress?.quizzesTaken || 0}
+                                        {userProgress?.quizzesTaken || 0}
                                     </span>
                                 </div>
                                 <div className="flex items-center justify-between">
@@ -586,7 +609,7 @@ const ProfilePage = () => {
                                         <span className="text-gray-600 dark:text-gray-400">Flashcards</span>
                                     </div>
                                     <span className="font-semibold text-gray-900 dark:text-white">
-                                        {user?.progress?.flashcardsCount || 0}
+                                        {userProgress?.flashcardsCount || 0}
                                     </span>
                                 </div>
                                 <div className="flex items-center justify-between">
@@ -595,7 +618,7 @@ const ProfilePage = () => {
                                         <span className="text-gray-600 dark:text-gray-400">Study Streak</span>
                                     </div>
                                     <span className="font-semibold text-gray-900 dark:text-white">
-                                        {user?.progress?.studyStreak || 0} days
+                                        {userProgress?.studyStreak || 0} days
                                     </span>
                                 </div>
                             </div>
@@ -607,13 +630,13 @@ const ProfilePage = () => {
                                         Weekly Goal Progress
                                     </span>
                                     <span className="text-sm text-gray-600 dark:text-gray-400">
-                                        {user?.progress?.weeklyProgress || 0}%
+                                        {userProgress?.weeklyProgress || 0}%
                                     </span>
                                 </div>
                                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                                     <div
                                         className="bg-gradient-to-r from-primary-600 to-secondary-600 h-2 rounded-full transition-all duration-300"
-                                        style={{ width: `${user?.progress?.weeklyProgress || 0}%` }}
+                                        style={{ width: `${userProgress?.weeklyProgress || 0}%` }}
                                     ></div>
                                 </div>
                             </div>
