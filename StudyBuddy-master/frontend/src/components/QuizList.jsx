@@ -62,8 +62,8 @@ const QuizList = () => {
     };
 
     const handleStartQuiz = (quiz) => {
-        // Navigate to quiz taking page or open modal
-        alert(`Starting quiz: ${quiz.title}`);
+        // Navigate to quiz taking page
+        window.location.href = `/quiz/${quiz._id}`;
     };
 
     const getDifficultyColor = (difficulty) => {

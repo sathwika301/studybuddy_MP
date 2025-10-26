@@ -113,86 +113,35 @@ const Flashcards = () => {
         setSuccess('');
 
         try {
-            // Simulate AI generation
             const generateTopic = topic || title;
 
-            // Generate subject-specific answers
-            const getSubjectSpecificAnswer = (questionType, subject, topic) => {
-                const subjectAnswers = {
-                    'Computer Science': {
-                        definition: `${topic} is a fundamental concept in Computer Science that refers to the process of organizing and structuring data in a way that allows for efficient storage, retrieval, and manipulation. It involves defining data types, relationships between data elements, and establishing rules for data integrity and consistency. This concept is essential for building reliable software systems that can handle complex data operations effectively.`,
-                        components: `The key components of ${topic} include: 1) Data Models - which define the structure and relationships of data, 2) Database Schemas - the blueprint for organizing data in a database, 3) Normalization - the process of organizing data to reduce redundancy and improve data integrity, 4) Indexing - techniques to speed up data retrieval, and 5) Query Languages - such as SQL for interacting with the data.`,
-                        application: `${topic} is applied in real-world scenarios through various applications such as e-commerce platforms where it manages product catalogs and customer data, banking systems that handle transactions and account information, social media platforms that organize user profiles and connections, healthcare systems that store patient records and medical history, and inventory management systems in retail businesses. These applications rely on ${topic} to ensure data accuracy, security, and efficient access.`
-                    },
-                    'Biology': {
-                        definition: `${topic} is a fundamental concept in Biology that refers to the study of living organisms and their interactions with the environment. It encompasses the structure, function, growth, evolution, and distribution of life forms. This concept is crucial for understanding the complexity of life processes and developing solutions for health, agriculture, and environmental challenges.`,
-                        components: `The key components of ${topic} include: 1) Cellular Structure - the basic unit of life and its organelles, 2) Genetics - the study of genes, heredity, and genetic variation, 3) Ecology - interactions between organisms and their environment, 4) Physiology - the study of how organisms function, and 5) Evolution - the process of change in species over time.`,
-                        application: `${topic} is applied in real-world scenarios through medical research for developing new treatments and vaccines, agricultural biotechnology for improving crop yields and pest resistance, environmental conservation efforts to protect biodiversity, forensic science for DNA analysis in criminal investigations, and pharmaceutical development for creating new drugs and therapies.`
-                    },
-                    'Mathematics': {
-                        definition: `${topic} is a fundamental concept in Mathematics that deals with the study of numbers, shapes, patterns, and relationships. It provides the language and tools for describing and analyzing quantitative relationships in the physical world. This concept forms the foundation for scientific and technological advancements.`,
-                        components: `The key components of ${topic} include: 1) Arithmetic - basic operations with numbers, 2) Algebra - study of variables and equations, 3) Geometry - study of shapes and spatial relationships, 4) Calculus - study of rates of change and accumulation, and 5) Statistics - collection, analysis, and interpretation of data.`,
-                        application: `${topic} is applied in real-world scenarios through engineering calculations for building structures, financial modeling for investment strategies, computer graphics for animation and gaming, cryptography for secure communications, and data analysis for business intelligence and scientific research.`
-                    },
-                    'Physics': {
-                        definition: `${topic} is a fundamental concept in Physics that studies matter, energy, and the fundamental forces of nature. It seeks to understand the behavior of the universe at its most basic level, from subatomic particles to cosmic structures. This concept drives technological innovation and our understanding of natural phenomena.`,
-                        components: `The key components of ${topic} include: 1) Mechanics - study of motion and forces, 2) Thermodynamics - study of heat and energy transfer, 3) Electromagnetism - study of electric and magnetic fields, 4) Quantum Physics - behavior of matter at atomic scales, and 5) Relativity - theories of space, time, and gravity.`,
-                        application: `${topic} is applied in real-world scenarios through semiconductor technology for computers and smartphones, medical imaging devices like MRI machines, renewable energy systems like solar panels and wind turbines, satellite communications and GPS navigation, and particle accelerators for scientific research.`
-                    },
-                    'Chemistry': {
-                        definition: `${topic} is a fundamental concept in Chemistry that studies the composition, structure, properties, and reactions of matter. It explores how substances interact, transform, and combine to form new materials. This concept is essential for understanding the material world and developing new technologies.`,
-                        components: `The key components of ${topic} include: 1) Atomic Structure - the building blocks of matter, 2) Chemical Bonding - how atoms connect to form molecules, 3) Chemical Reactions - transformations of substances, 4) Thermodynamics - energy changes in chemical processes, and 5) Organic Chemistry - study of carbon-based compounds.`,
-                        application: `${topic} is applied in real-world scenarios through pharmaceutical development for new medicines, materials science for advanced polymers and composites, environmental monitoring and pollution control, food science for nutrition and preservation, and industrial processes for manufacturing chemicals and fuels.`
-                    }
-                };
-
-                const defaultAnswers = {
-                    definition: `${topic} is a fundamental concept in ${subject} that involves the systematic study and application of principles related to this field. It encompasses theoretical foundations, practical methodologies, and real-world applications that contribute to understanding and solving problems in ${subject}.`,
-                    components: `The key components of ${topic} include core principles, methodologies, tools, and applications specific to ${subject}. These elements work together to provide a comprehensive framework for understanding and applying ${topic} in various contexts.`,
-                    application: `${topic} is applied in real-world scenarios across various industries and disciplines within ${subject}. It contributes to problem-solving, innovation, and advancement in areas such as technology, research, education, and practical implementations.`
-                };
-
-                const subjectData = subjectAnswers[subject] || defaultAnswers;
-
-                switch (questionType) {
-                    case 'definition':
-                        return subjectData.definition;
-                    case 'components':
-                        return subjectData.components;
-                    case 'application':
-                        return subjectData.application;
-                    default:
-                        return defaultAnswers.definition;
-                }
-            };
-
-            const mockCards = [
-                {
-                    front: `What is ${generateTopic}?`,
-                    back: getSubjectSpecificAnswer('definition', subject, generateTopic),
-                    hint: `Think about the fundamental principles of ${generateTopic} in ${subject}`,
-                    difficulty: 'easy',
-                    tags: ['definition', 'basic']
+            const response = await fetch('http://localhost:5000/api/flashcards/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
-                {
-                    front: `What are the key components of ${generateTopic}?`,
-                    back: getSubjectSpecificAnswer('components', subject, generateTopic),
-                    hint: `Consider the main elements that make up ${generateTopic}`,
-                    difficulty: 'medium',
-                    tags: ['components', 'structure']
-                },
-                {
-                    front: `How is ${generateTopic} applied in real-world scenarios?`,
-                    back: getSubjectSpecificAnswer('application', subject, generateTopic),
-                    hint: `Think about practical uses and examples of ${generateTopic}`,
-                    difficulty: 'hard',
-                    tags: ['application', 'real-world']
-                }
-            ];
+                body: JSON.stringify({
+                    topic: generateTopic,
+                    subject,
+                    difficulty,
+                    numCards: numCards || 5
+                })
+            });
 
-            setCards(mockCards);
-            setNumCards(mockCards.length);
-            setSuccess('AI-generated flashcards added!');
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.flashcards) {
+                    setCards(data.flashcards);
+                    setNumCards(data.flashcards.length);
+                    setSuccess('AI-generated flashcards created successfully!');
+                } else {
+                    setError('Failed to generate flashcards');
+                }
+            } else {
+                const errorData = await response.json();
+                setError(errorData.error || 'Failed to generate flashcards');
+            }
         } catch (err) {
             setError('Failed to generate AI flashcards');
         } finally {
@@ -226,91 +175,74 @@ const Flashcards = () => {
 
     if (studyMode) {
         return (
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-                <div className="container mx-auto px-4 max-w-2xl">
-                    <div className="text-center mb-8">
-                        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                            Study Mode
-                        </h1>
-                        <p className="text-lg text-gray-600 dark:text-gray-400">
-                            Card {currentCard + 1} of {cards.length}
-                        </p>
+            <div className="min-h-screen bg-white py-8">
+                <div className="container mx-auto px-4 max-w-4xl">
+                    {/* Header */}
+                    <div className="flex justify-between items-center mb-8">
+                        <h1 className="text-2xl font-bold text-gray-900">Flashcards</h1>
+                        <div className="flex space-x-4">
+                            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                Study
+                            </button>
+                            <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+                                Practice
+                            </button>
+                        </div>
                     </div>
 
-                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 mb-6">
-                        <div className="text-center">
-                            <div className="mb-6">
-                                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                                    {!showAnswer ? 'Question' : 'Answer'}
-                                </h2>
+                    {/* Centered Flashcard */}
+                    <div className="flex justify-center mb-8">
+                        <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
+                            <div className="text-center">
                                 <div className="min-h-[200px] flex items-center justify-center">
-                                    <p className="text-lg text-gray-700 dark:text-gray-300">
+                                    <p className="text-lg text-gray-700 font-sans">
                                         {!showAnswer ? cards[currentCard].front : cards[currentCard].back}
                                     </p>
                                 </div>
                             </div>
-
-                            {!showAnswer && cards[currentCard].hint && (
-                                <div className="mb-4 p-4 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-                                    <p className="text-sm text-blue-700 dark:text-blue-400">
-                                        <strong>Hint:</strong> {cards[currentCard].hint}
-                                    </p>
-                                </div>
-                            )}
-
-                            <div className="flex justify-center space-x-4">
-                                {!showAnswer ? (
-                                    <button
-                                        onClick={() => setShowAnswer(true)}
-                                        className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-                                    >
-                                        Show Answer
-                                    </button>
-                                ) : (
-                                    <div className="flex space-x-4">
-                                        <button
-                                            onClick={() => setShowAnswer(false)}
-                                            className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                                        >
-                                            Hide Answer
-                                        </button>
-                                        <button
-                                            onClick={nextCard}
-                                            disabled={currentCard === cards.length - 1}
-                                            className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
-                                        >
-                                            Next Card
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
                         </div>
                     </div>
 
-                    <div className="flex justify-between">
+                    {/* Show Answer Button */}
+                    {!showAnswer && (
+                        <div className="flex justify-center mb-8">
+                            <button
+                                onClick={() => setShowAnswer(true)}
+                                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                            >
+                                Show Answer
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Navigation Controls */}
+                    <div className="flex justify-center items-center space-x-8">
                         <button
                             onClick={prevCard}
                             disabled={currentCard === 0}
-                            className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50"
+                            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            <ChevronLeft className="w-4 h-4 mr-2" />
                             Previous
                         </button>
-                        
+                        <span className="text-lg text-gray-700 font-sans">
+                            {currentCard + 1} of {cards.length}
+                        </span>
+                        <button
+                            onClick={nextCard}
+                            disabled={currentCard === cards.length - 1}
+                            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            Next
+                        </button>
+                    </div>
+
+                    {/* Exit Button */}
+                    <div className="flex justify-center mt-8">
                         <button
                             onClick={() => setStudyMode(false)}
                             className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                         >
                             Exit Study Mode
-                        </button>
-                        
-                        <button
-                            onClick={nextCard}
-                            disabled={currentCard === cards.length - 1}
-                            className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50"
-                        >
-                            Next
-                            <ChevronRight className="w-4 h-4 ml-2" />
                         </button>
                     </div>
                 </div>

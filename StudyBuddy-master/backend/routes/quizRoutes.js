@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Quiz = require('../models/Quiz');
 const { protect } = require('../middleware/auth');
+const { generateAIQuiz } = require('../controllers/quizController');
 
 // Get public quizzes (must be defined before /:id routes)
 router.get('/public', async (req, res) => {
@@ -156,15 +157,18 @@ router.put('/:id', protect, async (req, res) => {
 router.delete('/:id', protect, async (req, res) => {
     try {
         const quiz = await Quiz.findOneAndDelete({ _id: req.params.id, author: req.user._id });
-        
+
         if (!quiz) {
             return res.status(404).json({ success: false, error: 'Quiz not found' });
         }
-        
+
         res.json({ success: true, message: 'Quiz deleted successfully' });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
 });
+
+// Generate AI quiz questions
+router.post('/generate-ai', protect, generateAIQuiz);
 
 module.exports = router;

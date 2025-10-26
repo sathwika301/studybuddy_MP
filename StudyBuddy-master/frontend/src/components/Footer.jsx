@@ -90,7 +90,7 @@ const Footer = () => {
             </h2>
             <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'} text-sm leading-relaxed`}>
               Your intelligent study companion powered by <b>cutting-edge AI technology</b>. <br />
-              Transform your learning experience with personalized notes, smart quizzes, and collaborative study groups.
+              Transform your learning experience with personalized notes and smart quizzes.
             </p>
           </div>
 
@@ -100,7 +100,7 @@ const Footer = () => {
             <ul className="space-y-2">
               <li><a href="/" className={`${isDark ? 'text-gray-300' : 'text-gray-600'} hover:text-blue-400 transition-colors duration-200`}>Home</a></li>
               <li><a href="/resources" className={`${isDark ? 'text-gray-300' : 'text-gray-600'} hover:text-blue-400 transition-colors duration-200`}>Resources</a></li>
-              <li><a href="/study-groups" className={`${isDark ? 'text-gray-300' : 'text-gray-600'} hover:text-blue-400 transition-colors duration-200`}>Study Groups</a></li>
+
               <li><a href="/login" className={`${isDark ? 'text-gray-300' : 'text-gray-600'} hover:text-blue-400 transition-colors duration-200`}>Login</a></li>
             </ul>
           </div>

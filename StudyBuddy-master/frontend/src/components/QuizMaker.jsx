@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BookOpen, Plus, Trash2, Save, Play, Sparkles, Loader2, Eye, List } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import QuizList from './QuizList';
 
 const QuizMaker = () => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [subject, setSubject] = useState('');
     const [topic, setTopic] = useState('');
     const [difficulty, setDifficulty] = useState('medium');
     const [numQuestions, setNumQuestions] = useState(5);
+    const [timeLimit, setTimeLimit] = useState(0);
     const [questionType, setQuestionType] = useState('multiple-choice');
     const [questions, setQuestions] = useState([]);
     const [isGenerating, setIsGenerating] = useState(false);
@@ -19,44 +22,7 @@ const QuizMaker = () => {
     const [showList, setShowList] = useState(false);
 
     const subjects = [
-        // STEM
-        'Mathematics', 'Physics', 'Chemistry', 'Biology', 'Computer Science',
-        'Statistics', 'Data Science', 'Machine Learning', 'Artificial Intelligence',
-        'Algorithms', 'Data Structures', 'Operating Systems', 'Database Management Systems',
-        'Computer Networks', 'Software Engineering', 'Theory of Computation',
-        'Programming Languages', 'Web Development', 'Discrete Mathematics',
-        'Calculus', 'Linear Algebra', 'Differential Equations', 'Probability',
-        'Geology', 'Astronomy', 'Environmental Science', 'Biotechnology',
-        'Genetics', 'Microbiology', 'Organic Chemistry', 'Inorganic Chemistry',
-        'Physical Chemistry', 'Quantum Physics', 'Thermodynamics', 'Electromagnetism',
-
-        // Engineering
-        'Mechanical Engineering', 'Electrical Engineering', 'Civil Engineering',
-        'Chemical Engineering', 'Aerospace Engineering', 'Biomedical Engineering',
-        'Computer Engineering', 'Information Technology', 'Robotics',
-        'Materials Science', 'Nanotechnology', 'Control Systems',
-
-        // Humanities and Arts
-        'History', 'Geography', 'Literature', 'Philosophy', 'Art', 'Music',
-        'Theater', 'Film Studies', 'Graphic Design', 'Architecture',
-        'English', 'Spanish', 'French', 'German', 'Chinese', 'Japanese',
-        'Latin', 'Greek', 'Sanskrit', 'Arabic', 'Hindi',
-
-        // Social Sciences
-        'Economics', 'Business Studies', 'Psychology', 'Sociology', 'Political Science',
-        'Anthropology', 'Criminology', 'International Relations', 'Public Administration',
-        'Social Work', 'Urban Planning', 'Demography',
-
-        // Professional and Applied
-        'Medicine', 'Nursing', 'Pharmacy', 'Dentistry', 'Veterinary Science',
-        'Law', 'Accounting', 'Finance', 'Marketing', 'Human Resources',
-        'Education', 'Teaching', 'Journalism', 'Communication', 'Public Relations',
-        'Hospitality Management', 'Tourism', 'Sports Science', 'Nutrition',
-        'Agriculture', 'Forestry', 'Fisheries',
-
-        // Other
-        'Ethics', 'Logic', 'Critical Thinking', 'Research Methods',
-        'Project Management', 'Quality Assurance', 'Supply Chain Management'
+        'Accounting', 'Actuarial Science', 'Agriculture', 'Algorithms', 'Anatomy', 'Anthropology', 'Archaeology', 'Architecture', 'Art', 'Artificial Intelligence', 'Assembly Language', 'Astronomy', 'Bash/Shell Scripting', 'Biochemistry', 'Biology', 'Biomedical Engineering', 'Blockchain', 'Business Studies', 'C', 'C#', 'C++', 'Calculus', 'Chemical Engineering', 'Chemistry', 'Civil Engineering', 'Cloud Computing', 'Communication', 'Compiler Design', 'Computer Engineering', 'Computer Graphics', 'Computer Networks', 'Computer Science', 'Constitutional Law', 'Control Systems', 'Corporate Law', 'Creative Writing', 'Criminal Justice', 'Cultural Studies', 'Cybersecurity', 'Dance', 'Data Science', 'Data Structures', 'Database Management Systems', 'Dentistry', 'DevOps', 'Dietetics', 'Discrete Mathematics', 'Ecology', 'Economics', 'Education', 'Electrical Engineering', 'Electromagnetism', 'English', 'Entrepreneurship', 'Environmental Law', 'Environmental Science', 'Ethics', 'Fashion Design', 'Film Studies', 'Finance', 'Fine Arts', 'Fisheries', 'Forestry', 'Game Development', 'Gender Studies', 'Genetics', 'Geography', 'Geology', 'Go', 'Graphic Design', 'Haskell', 'Health Education', 'Hindi', 'History', 'Hospitality Management', 'HTML/CSS', 'Human Resources', 'Human Rights Law', 'Human-Computer Interaction', 'Industrial Engineering', 'Information Systems', 'Inorganic Chemistry', 'International Business', 'International Law', 'Internet of Things (IoT)', 'Java', 'JavaScript', 'Journalism', 'Kotlin', 'Law', 'Library Science', 'Linguistics', 'Linear Algebra', 'Literature', 'Logic', 'Lua', 'Machine Learning', 'Management', 'Marketing', 'Materials Science', 'Mathematics', 'MATLAB', 'Mechanical Engineering', 'Media Studies', 'Medicine', 'Meteorology', 'Microbiology', 'Mobile Development', 'Music', 'Nanotechnology', 'Nursing', 'Nutrition', 'Oceanography', 'Operations Management', 'Operating Systems', 'Organic Chemistry', 'Pathology', 'Perl', 'Pharmacology', 'Philosophy', 'Photography', 'Physical Chemistry', 'Physical Education', 'Physics', 'Physiology', 'Political Science', 'Probability', 'Programming Languages', 'Project Management', 'Psychology', 'Public Administration', 'Public Health', 'Public Relations', 'Python', 'Quality Assurance', 'Quantum Physics', 'R', 'Religious Studies', 'Research Methods', 'Robotics', 'Ruby', 'Rust', 'Scala', 'Social Work', 'Sociology', 'Software Engineering', 'Software Testing', 'Spanish', 'Sports Science', 'SQL', 'Statistics', 'Supply Chain Management', 'Swift', 'Teaching', 'Theater', 'Theory of Computation', 'Thermodynamics', 'Tourism', 'TypeScript', 'Urban Planning', 'Veterinary Science', 'Web Development'
     ];
 
     // Automatically suggest subject based on topic
@@ -303,6 +269,7 @@ const QuizMaker = () => {
                     description,
                     subject,
                     difficulty,
+                    timeLimit,
                     questions: questions.map(q => {
                         const questionData = {
                             question: q.question,
@@ -354,183 +321,45 @@ const QuizMaker = () => {
         setSuccess('');
 
         try {
-            // Generate relevant questions based on the chosen topic in the specific subject
-            const allQuestionTemplates = [
-                // Multiple Choice Questions
-                {
-                    question: `What is the definition of ${topic} in ${subject}?`,
-                    type: 'multiple-choice',
-                    options: [
-                        'A fundamental concept',
-                        'An advanced theory',
-                        'A basic principle',
-                        'A complex formula'
-                    ],
-                    correctAnswer: 'A fundamental concept',
-                    explanation: `${topic} is a core concept in ${subject} that forms the basis for understanding related topics.`,
-                    points: 1
+            const response = await fetch('http://localhost:5000/api/quizzes/generate-ai', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
-                {
-                    question: `Which of the following is a key characteristic of ${topic}?`,
-                    type: 'multiple-choice',
-                    options: [
-                        'It has specific properties',
-                        'It is unrelated to other concepts',
-                        'It only applies in theory',
-                        'It has no practical applications'
-                    ],
-                    correctAnswer: 'It has specific properties',
-                    explanation: `Understanding the key characteristics of ${topic} is essential for mastering ${subject}.`,
-                    points: 1
-                },
-                {
-                    question: `What are the main components of ${topic} in ${subject}?`,
-                    type: 'multiple-choice',
-                    options: [
-                        'Core elements and principles',
-                        'Only theoretical aspects',
-                        'Unrelated concepts',
-                        'Advanced applications only'
-                    ],
-                    correctAnswer: 'Core elements and principles',
-                    explanation: `The main components of ${topic} include its core elements and fundamental principles.`,
-                    points: 1
-                },
-                {
-                    question: `Which statement best describes ${topic}?`,
-                    type: 'multiple-choice',
-                    options: [
-                        'A basic building block',
-                        'An optional advanced topic',
-                        'A theoretical concept only',
-                        'An unrelated field'
-                    ],
-                    correctAnswer: 'A basic building block',
-                    explanation: `${topic} serves as a basic building block in ${subject}.`,
-                    points: 1
-                },
-                {
-                    question: `What is the primary purpose of ${topic} in ${subject}?`,
-                    type: 'multiple-choice',
-                    options: [
-                        'To solve complex problems',
-                        'To memorize facts',
-                        'To understand relationships',
-                        'To perform calculations'
-                    ],
-                    correctAnswer: 'To solve complex problems',
-                    explanation: `${topic} is primarily used to address complex problems in ${subject}.`,
-                    points: 1
-                },
-                // True/False Questions
-                {
-                    question: `True or False: ${topic} is a critical component of ${subject}.`,
-                    type: 'true-false',
-                    correctAnswer: 'True',
-                    explanation: `${topic} plays a vital role in understanding and applying concepts in ${subject}.`,
-                    points: 1
-                },
-                {
-                    question: `True or False: ${topic} only has theoretical applications in ${subject}.`,
-                    type: 'true-false',
-                    correctAnswer: 'False',
-                    explanation: `${topic} has both theoretical and practical applications in ${subject}.`,
-                    points: 1
-                },
-                {
-                    question: `True or False: Understanding ${topic} is essential for advanced studies in ${subject}.`,
-                    type: 'true-false',
-                    correctAnswer: 'True',
-                    explanation: `${topic} forms the foundation for more advanced concepts in ${subject}.`,
-                    points: 1
-                },
-                {
-                    question: `True or False: ${topic} is unrelated to other topics in ${subject}.`,
-                    type: 'true-false',
-                    correctAnswer: 'False',
-                    explanation: `${topic} is interconnected with many other concepts in ${subject}.`,
-                    points: 1
-                },
-                // Short Answer Questions
-                {
-                    question: `How is ${topic} applied in real-world scenarios within ${subject}?`,
-                    type: 'short-answer',
-                    correctAnswer: 'Through practical examples and problem-solving',
-                    explanation: `${topic} has numerous applications in ${subject} that help solve real-world problems.`,
-                    points: 2
-                },
-                {
-                    question: `What are the most important aspects to remember about ${topic} in ${subject}?`,
-                    type: 'short-answer',
-                    correctAnswer: 'Key definitions, properties, and applications',
-                    explanation: `Mastering ${topic} requires understanding its definitions, properties, and how it applies to ${subject}.`,
-                    points: 2
-                },
-                {
-                    question: `Explain the importance of ${topic} in ${subject}.`,
-                    type: 'short-answer',
-                    correctAnswer: 'It provides foundational knowledge and practical applications',
-                    explanation: `${topic} is important because it builds essential knowledge and enables real-world applications in ${subject}.`,
-                    points: 2
-                },
-                {
-                    question: `What are the key principles behind ${topic} in ${subject}?`,
-                    type: 'short-answer',
-                    correctAnswer: 'Fundamental rules and concepts that govern its behavior',
-                    explanation: `Understanding the key principles is crucial for applying ${topic} correctly in ${subject}.`,
-                    points: 2
-                },
-                {
-                    question: `How does ${topic} relate to other concepts in ${subject}?`,
-                    type: 'short-answer',
-                    correctAnswer: 'Through interconnected relationships and dependencies',
-                    explanation: `${topic} connects with other concepts to form a comprehensive understanding of ${subject}.`,
-                    points: 2
-                },
-                // Essay Questions
-                {
-                    question: `Describe the process of ${topic} in ${subject} and explain its significance.`,
-                    type: 'essay',
-                    correctAnswer: 'A detailed explanation covering the steps, principles, and importance of the process',
-                    explanation: `Essay questions require comprehensive understanding and detailed responses.`,
-                    points: 5
-                },
-                {
-                    question: `Compare and contrast ${topic} with related concepts in ${subject}.`,
-                    type: 'essay',
-                    correctAnswer: 'A balanced comparison highlighting similarities and differences',
-                    explanation: `This requires analytical thinking and deep understanding of multiple concepts.`,
-                    points: 5
-                },
-                {
-                    question: `Discuss the historical development and evolution of ${topic} in ${subject}.`,
-                    type: 'essay',
-                    correctAnswer: 'A chronological overview of how the concept developed over time',
-                    explanation: `Understanding the historical context helps appreciate the current state of ${topic}.`,
-                    points: 5
-                },
-                {
-                    question: `Analyze the impact of ${topic} on modern applications in ${subject}.`,
-                    type: 'essay',
-                    correctAnswer: 'An analysis of how the concept influences contemporary practices',
-                    explanation: `This demonstrates the practical relevance of ${topic} in today's context.`,
-                    points: 5
+                body: JSON.stringify({
+                    subject,
+                    topic,
+                    numQuestions,
+                    questionType,
+                    difficulty
+                })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    // Transform backend questions to frontend format
+                    const formattedQuestions = data.questions.map(q => ({
+                        question: q.question,
+                        type: q.type,
+                        options: q.type === 'multiple-choice' ? q.options.map(opt => opt.text) : q.type === 'true-false' ? ['True', 'False'] : [],
+                        correctAnswer: q.correctAnswer,
+                        explanation: q.explanation,
+                        points: q.points
+                    }));
+
+                    setQuestions(formattedQuestions);
+                    setSuccess(`${numQuestions} AI-generated questions added!`);
+                } else {
+                    setError(data.error || 'Failed to generate questions');
                 }
-            ];
-
-            // Filter templates based on selected question type
-            const questionTemplates = allQuestionTemplates.filter(template => template.type === questionType);
-
-            const mockQuestions = [];
-            for (let i = 0; i < numQuestions; i++) {
-                const templateIndex = i % questionTemplates.length;
-                mockQuestions.push({ ...questionTemplates[templateIndex] });
+            } else {
+                const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+                setError(`Failed to generate questions: ${errorData.message || response.statusText}`);
             }
-
-            setQuestions(mockQuestions);
-            setSuccess(`${numQuestions} AI-generated ${questionType} questions added!`);
         } catch (err) {
-            setError('Failed to generate AI questions');
+            setError('Failed to generate AI questions. Please try again.');
         } finally {
             setIsGenerating(false);
         }
@@ -612,6 +441,20 @@ const QuizMaker = () => {
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Time Limit (minutes)
+                            </label>
+                            <input
+                                type="number"
+                                value={timeLimit}
+                                onChange={(e) => setTimeLimit(Math.max(0, parseInt(e.target.value) || 0))}
+                                min="0"
+                                placeholder="0 for no limit"
+                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Question Type
                             </label>
                             <select
@@ -667,6 +510,23 @@ const QuizMaker = () => {
                                 <Sparkles className="w-4 h-4 mr-2" />
                             )}
                             Generate AI Questions
+                        </button>
+                        <button
+                            onClick={() => {
+                                const previewQuiz = {
+                                    title: title || 'Untitled Quiz',
+                                    description: description || '',
+                                    subject: subject || '',
+                                    questions: questions,
+                                    timeLimit: timeLimit,
+                                    difficulty: difficulty
+                                };
+                                navigate('/quiz-environment', { state: { quiz: previewQuiz } });
+                            }}
+                            className="flex items-center px-4 py-2 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:shadow-lg transition-all duration-300"
+                        >
+                            <Eye className="w-4 h-4 mr-2" />
+                            Preview Quiz Environment
                         </button>
                     </div>
 

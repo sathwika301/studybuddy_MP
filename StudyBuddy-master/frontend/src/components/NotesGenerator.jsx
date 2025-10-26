@@ -19,12 +19,60 @@ const NotesGenerator = () => {
     const [selectedNote, setSelectedNote] = useState(null);
 
     const subjects = [
-        'Algorithms', 'Art', 'Biology', 'Business Studies', 'Chemistry', 'Computer Networks',
-        'Computer Science', 'Data Structures', 'Database Management Systems', 'Discrete Mathematics',
-        'Economics', 'English', 'Environmental Science', 'Geography', 'History', 'Literature',
-        'Mathematics', 'Music', 'Operating Systems', 'Philosophy', 'Physics', 'Political Science',
-        'Programming Languages', 'Psychology', 'Sociology', 'Software Engineering', 'Theory of Computation',
-        'Web Development'
+        // Core Academic Subjects
+        'Mathematics', 'Physics', 'Chemistry', 'Biology', 'English', 'History', 'Geography',
+        'Economics', 'Political Science', 'Sociology', 'Psychology', 'Philosophy', 'Literature',
+        'Environmental Science', 'Art', 'Music', 'Physical Education', 'Health Education',
+
+        // Computer Science and Programming
+        'Computer Science', 'Programming Languages', 'Algorithms', 'Data Structures',
+        'Database Management Systems', 'Operating Systems', 'Computer Networks',
+        'Software Engineering', 'Web Development', 'Mobile Development', 'Cybersecurity',
+        'Artificial Intelligence', 'Machine Learning', 'Data Science', 'Cloud Computing',
+        'Blockchain', 'Internet of Things (IoT)', 'Game Development', 'DevOps',
+        'Discrete Mathematics', 'Theory of Computation', 'Compiler Design', 'Computer Graphics',
+        'Human-Computer Interaction', 'Information Systems', 'Software Testing',
+
+        // Programming Languages
+        'Python', 'JavaScript', 'Java', 'C++', 'C#', 'Ruby', 'PHP', 'Swift', 'Kotlin',
+        'Go', 'Rust', 'TypeScript', 'R', 'MATLAB', 'Scala', 'Perl', 'Haskell', 'Lua',
+        'Assembly Language', 'SQL', 'HTML/CSS', 'Bash/Shell Scripting',
+
+        // Engineering
+        'Mechanical Engineering', 'Electrical Engineering', 'Civil Engineering',
+        'Chemical Engineering', 'Aerospace Engineering', 'Biomedical Engineering',
+        'Computer Engineering', 'Industrial Engineering', 'Materials Science',
+
+        // Business and Finance
+        'Business Studies', 'Finance', 'Accounting', 'Marketing', 'Management',
+        'Entrepreneurship', 'International Business', 'Supply Chain Management',
+        'Human Resources', 'Operations Management',
+
+        // Medicine and Health Sciences
+        'Medicine', 'Nursing', 'Pharmacology', 'Anatomy', 'Physiology', 'Microbiology',
+        'Pathology', 'Public Health', 'Dentistry', 'Veterinary Science',
+
+        // Law and Legal Studies
+        'Law', 'Criminal Justice', 'International Law', 'Constitutional Law',
+        'Corporate Law', 'Environmental Law', 'Human Rights Law',
+
+        // Social Sciences and Humanities
+        'Anthropology', 'Archaeology', 'Linguistics', 'Religious Studies',
+        'Ethics', 'Cultural Studies', 'Gender Studies', 'Media Studies',
+
+        // Sciences
+        'Astronomy', 'Geology', 'Oceanography', 'Meteorology', 'Ecology',
+        'Genetics', 'Biochemistry', 'Organic Chemistry', 'Inorganic Chemistry',
+        'Physical Chemistry', 'Quantum Physics', 'Thermodynamics',
+
+        // Arts and Design
+        'Fine Arts', 'Graphic Design', 'Fashion Design', 'Interior Design',
+        'Photography', 'Film Studies', 'Theater', 'Dance', 'Creative Writing',
+
+        // Other Specialized Fields
+        'Agriculture', 'Forestry', 'Urban Planning', 'Education', 'Library Science',
+        'Journalism', 'Public Relations', 'Tourism', 'Hospitality Management',
+        'Sports Science', 'Nutrition', 'Dietetics', 'Statistics', 'Actuarial Science'
     ];
 
     // Use api utility for generating notes

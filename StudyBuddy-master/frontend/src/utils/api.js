@@ -40,35 +40,7 @@ api.interceptors.response.use(
   }
 );
 
-// API endpoints for study groups
-export const studyGroupsAPI = {
-  // Get all study groups with pagination and filtering
-  getAll: (params = {}) => api.get('/study-groups', { params }),
-  
-  // Get single study group
-  getById: (id) => api.get(`/study-groups/${id}`),
-  
-  // Create new study group
-  create: (data) => api.post('/study-groups', data),
-  
-  // Update study group
-  update: (id, data) => api.put(`/study-groups/${id}`, data),
-  
-  // Delete study group
-  delete: (id) => api.delete(`/study-groups/${id}`),
-  
-  // Join study group
-  join: (id) => api.post(`/study-groups/${id}/join`),
-  
-  // Leave study group
-  leave: (id) => api.post(`/study-groups/${id}/leave`),
-  
-  // Add resource to study group
-  addResource: (id, data) => api.post(`/study-groups/${id}/resources`, data),
-  
-  // Get user's study groups
-  getUserGroups: () => api.get('/study-groups/user/me'),
-};
+
 
 // API endpoints for channels
 export const channelsAPI = {
