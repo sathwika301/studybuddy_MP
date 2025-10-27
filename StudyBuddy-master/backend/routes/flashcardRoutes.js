@@ -88,7 +88,23 @@ router.post('/', protect, async (req, res) => {
         await User.findByIdAndUpdate(req.user._id, {
             $inc: {
                 'profile.progress.createdFlashcards': 1,
-                'profile.progress.totalStudyTime': 10 // Assume 10 minutes per flashcard set
+                'profile.progress.totalStudyTime': 10, // Assume 10 minutes per flashcard set
+                'profile.completedTasks.flashcardsThisWeek': 1,
+                'profile.completedTasks.studyTimeThisWeek': 10
+            },
+            $set: {
+                'profile.lastActiveDate': new Date()
+            },
+            $push: {
+                'history.flashcards': {
+                    contentId: flashcard._id,
+                    title: flashcard.title,
+                    topic: flashcard.topic,
+                    subject: flashcard.subject,
+                    cardsCount: flashcard.cards.length,
+                    generatedAt: new Date(),
+                    difficulty: flashcard.difficulty
+                }
             }
         });
 

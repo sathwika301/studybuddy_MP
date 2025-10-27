@@ -1,8 +1,8 @@
-# TODO: Implement Navigation on "Start Using Now" Button for AI Chat Assistant
+# Update ProgressAnalytics to Use Real Data
 
-## Steps to Complete:
-- [ ] Import `useNavigate` from 'react-router-dom' in Hero.jsx
-- [ ] Add `const navigate = useNavigate();` inside the Hero component
-- [ ] Define `handleStartUsingNow` function to handle navigation for AI Chat Assistant
-- [ ] Update the "Start Using Now" button's onClick to use `handleStartUsingNow`
-- [ ] Test the functionality to ensure it navigates to /chat when logged in, shows prompt when not
+## Tasks to Complete
+- [ ] Update ProgressAnalytics.jsx to fetch real data from learning progress API
+- [ ] Replace mock data with dynamic data fetching
+- [ ] Update stats cards to display real flashcards and quiz counts
+- [ ] Add proper loading and error handling
+- [ ] Test the component with real data

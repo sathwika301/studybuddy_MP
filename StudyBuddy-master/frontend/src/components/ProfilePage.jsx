@@ -591,7 +591,7 @@ const ProfilePage = () => {
                                         <span className="text-gray-600 dark:text-gray-400">Study Notes</span>
                                     </div>
                                     <span className="font-semibold text-gray-900 dark:text-white">
-                                        {userProgress?.notesCount || 0}
+                                        {userProgress?.studyNotes || 0}
                                     </span>
                                 </div>
                                 <div className="flex items-center justify-between">
@@ -609,7 +609,7 @@ const ProfilePage = () => {
                                         <span className="text-gray-600 dark:text-gray-400">Flashcards</span>
                                     </div>
                                     <span className="font-semibold text-gray-900 dark:text-white">
-                                        {userProgress?.flashcardsCount || 0}
+                                        {userProgress?.flashcards || 0}
                                     </span>
                                 </div>
                                 <div className="flex items-center justify-between">
@@ -630,13 +630,13 @@ const ProfilePage = () => {
                                         Weekly Goal Progress
                                     </span>
                                     <span className="text-sm text-gray-600 dark:text-gray-400">
-                                        {userProgress?.weeklyProgress || 0}%
+                                        {userProgress?.weeklyGoalProgress?.overall || 0}%
                                     </span>
                                 </div>
                                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                                     <div
                                         className="bg-gradient-to-r from-primary-600 to-secondary-600 h-2 rounded-full transition-all duration-300"
-                                        style={{ width: `${userProgress?.weeklyProgress || 0}%` }}
+                                        style={{ width: `${userProgress?.weeklyGoalProgress?.overall || 0}%` }}
                                     ></div>
                                 </div>
                             </div>

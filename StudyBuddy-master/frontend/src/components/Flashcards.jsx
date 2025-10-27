@@ -18,12 +18,7 @@ const Flashcards = () => {
     const [numCards, setNumCards] = useState(0);
 
     const subjects = [
-        'Algorithms', 'Art', 'Biology', 'Business Studies', 'Chemistry', 'Computer Networks',
-        'Computer Science', 'Data Structures', 'Database Management Systems', 'Discrete Mathematics',
-        'Economics', 'English', 'Environmental Science', 'Geography', 'History', 'Literature',
-        'Mathematics', 'Music', 'Operating Systems', 'Philosophy', 'Physics', 'Political Science',
-        'Programming Languages', 'Psychology', 'Sociology', 'Software Engineering', 'Theory of Computation',
-        'Web Development'
+        'Accounting', 'Actuarial Science', 'Aerospace Engineering', 'Agriculture', 'Algorithms', 'Anatomy', 'Anthropology', 'Archaeology', 'Art', 'Artificial Intelligence', 'Assembly Language', 'Astronomy', 'Bash/Shell Scripting', 'Biochemistry', 'Biology', 'Biomedical Engineering', 'Blockchain', 'Business Studies', 'C', 'C#', 'C++', 'Chemistry', 'Chemical Engineering', 'Civil Engineering', 'Cloud Computing', 'Compiler Design', 'Computer Engineering', 'Computer Graphics', 'Computer Networks', 'Computer Science', 'Constitutional Law', 'Corporate Law', 'Creative Writing', 'Criminal Justice', 'Cultural Studies', 'Cybersecurity', 'Dance', 'Data Science', 'Data Structures', 'Database Management Systems', 'Dentistry', 'DevOps', 'Dietetics', 'Discrete Mathematics', 'Economics', 'Ecology', 'Education', 'Electrical Engineering', 'English', 'Entrepreneurship', 'Environmental Law', 'Environmental Science', 'Ethics', 'Fashion Design', 'Film Studies', 'Finance', 'Fine Arts', 'Forestry', 'Game Development', 'Gender Studies', 'Genetics', 'Geography', 'Geology', 'Go', 'Graphic Design', 'Haskell', 'Health Education', 'History', 'Hospitality Management', 'HTML/CSS', 'Human Resources', 'Human Rights Law', 'Human-Computer Interaction', 'Industrial Engineering', 'Information Systems', 'Inorganic Chemistry', 'Interior Design', 'International Business', 'International Law', 'Internet of Things (IoT)', 'Java', 'JavaScript', 'Journalism', 'Kotlin', 'Law', 'Library Science', 'Linguistics', 'Literature', 'Lua', 'Machine Learning', 'Management', 'Marketing', 'Materials Science', 'Mathematics', 'MATLAB', 'Mechanical Engineering', 'Media Studies', 'Medicine', 'Meteorology', 'Microbiology', 'Mobile Development', 'Music', 'Nursing', 'Nutrition', 'Oceanography', 'Operating Systems', 'Operations Management', 'Organic Chemistry', 'Pathology', 'Perl', 'Pharmacology', 'Philosophy', 'Photography', 'Physical Chemistry', 'Physical Education', 'Physics', 'Physiology', 'Political Science', 'Programming Languages', 'Psychology', 'Public Health', 'Public Relations', 'Python', 'Quantum Physics', 'R', 'Religious Studies', 'Ruby', 'Rust', 'Scala', 'Sociology', 'Software Engineering', 'Software Testing', 'Sports Science', 'SQL', 'Statistics', 'Supply Chain Management', 'Swift', 'Theater', 'Theory of Computation', 'Thermodynamics', 'Tourism', 'TypeScript', 'Urban Planning', 'Veterinary Science', 'Web Development'
     ];
 
     useEffect(() => {
@@ -134,7 +129,38 @@ const Flashcards = () => {
                 if (data.success && data.flashcards) {
                     setCards(data.flashcards);
                     setNumCards(data.flashcards.length);
-                    setSuccess('AI-generated flashcards created successfully!');
+
+                    // Auto-save the generated flashcards to library
+                    try {
+                        const saveResponse = await fetch('http://localhost:5000/api/flashcards', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                            },
+                            body: JSON.stringify({
+                                title: title || `AI Generated Flashcards on ${topic}`,
+                                subject,
+                                topic: topic || title,
+                                difficulty,
+                                cards: data.flashcards,
+                                settings: {
+                                    randomizeOrder: true,
+                                    showHints: true,
+                                    reverseCards: false
+                                }
+                            })
+                        });
+
+                        if (saveResponse.ok) {
+                            setSuccess('AI-generated flashcards created and saved to your library!');
+                        } else {
+                            setSuccess('AI-generated flashcards created successfully! (Note: Auto-save failed, please save manually)');
+                        }
+                    } catch (saveErr) {
+                        console.error('Auto-save failed:', saveErr);
+                        setSuccess('AI-generated flashcards created successfully! (Note: Auto-save failed, please save manually)');
+                    }
                 } else {
                     setError('Failed to generate flashcards');
                 }

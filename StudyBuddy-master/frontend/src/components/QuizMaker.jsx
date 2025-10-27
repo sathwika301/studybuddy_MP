@@ -350,7 +350,54 @@ const QuizMaker = () => {
                     }));
 
                     setQuestions(formattedQuestions);
-                    setSuccess(`${numQuestions} AI-generated questions added!`);
+
+                    // Auto-save the generated quiz to library
+                    try {
+                        const saveResponse = await fetch('http://localhost:5000/api/quizzes', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                            },
+                            body: JSON.stringify({
+                                title: title || `AI Generated Quiz on ${topic}`,
+                                description: description || `AI-generated quiz on ${topic} in ${subject}`,
+                                subject,
+                                topic,
+                                difficulty,
+                                timeLimit,
+                                questions: formattedQuestions.map(q => {
+                                    const questionData = {
+                                        question: q.question,
+                                        type: q.type,
+                                        correctAnswer: q.correctAnswer,
+                                        explanation: q.explanation,
+                                        points: q.points
+                                    };
+                                    if (q.type === 'multiple-choice') {
+                                        questionData.options = q.options;
+                                    }
+                                    return questionData;
+                                }),
+                                settings: {
+                                    randomizeQuestions: true,
+                                    randomizeOptions: true,
+                                    showCorrectAnswers: true,
+                                    allowRetakes: true,
+                                    passingScore: 70
+                                }
+                            })
+                        });
+
+                        if (saveResponse.ok) {
+                            setSuccess(`${numQuestions} AI-generated questions added and saved to your library!`);
+                        } else {
+                            setSuccess(`${numQuestions} AI-generated questions added successfully! (Note: Auto-save failed, please save manually)`);
+                        }
+                    } catch (saveErr) {
+                        console.error('Auto-save failed:', saveErr);
+                        setSuccess(`${numQuestions} AI-generated questions added successfully! (Note: Auto-save failed, please save manually)`);
+                    }
                 } else {
                     setError(data.error || 'Failed to generate questions');
                 }

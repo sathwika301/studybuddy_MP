@@ -110,7 +110,23 @@ router.post('/', protect, async (req, res) => {
         await User.findByIdAndUpdate(req.user._id, {
             $inc: {
                 'profile.progress.createdNotes': 1,
-                'profile.progress.totalStudyTime': 15 // Assume 15 minutes per note
+                'profile.progress.totalStudyTime': 15, // Assume 15 minutes per note
+                'profile.completedTasks.notesThisWeek': 1,
+                'profile.completedTasks.studyTimeThisWeek': 15
+            },
+            $set: {
+                'profile.lastActiveDate': new Date()
+            },
+            $push: {
+                'history.notes': {
+                    contentId: note._id,
+                    title: note.title,
+                    topic: note.topic,
+                    subject: note.subject,
+                    content: note.content,
+                    generatedAt: new Date(),
+                    difficulty: note.difficulty
+                }
             }
         });
 

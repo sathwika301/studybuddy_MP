@@ -124,7 +124,23 @@ router.post('/', protect, async (req, res) => {
         await User.findByIdAndUpdate(req.user._id, {
             $inc: {
                 'profile.progress.completedQuizzes': 1,
-                'profile.progress.totalStudyTime': 20 // Assume 20 minutes per quiz
+                'profile.progress.totalStudyTime': 20, // Assume 20 minutes per quiz
+                'profile.completedTasks.quizzesThisWeek': 1,
+                'profile.completedTasks.studyTimeThisWeek': 20
+            },
+            $set: {
+                'profile.lastActiveDate': new Date()
+            },
+            $push: {
+                'history.quizzes': {
+                    contentId: quiz._id,
+                    title: quiz.title,
+                    topic: quiz.topic,
+                    subject: quiz.subject,
+                    questionsCount: quiz.questions.length,
+                    generatedAt: new Date(),
+                    difficulty: quiz.difficulty
+                }
             }
         });
 

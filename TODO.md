@@ -1,12 +1,10 @@
-- [x] Change background to clean minimal white
-- [x] Center the quiz card vertically
-- [x] Set timer based on quiz.timeLimit (default 10 minutes)
-- [x] Make question text bold
-- [x] Highlight selected radio button options
-- [x] Show total score below question area after submission
-- [x] Disable navigation and input after submission
-- [x] Update button states and text after submission
-- [x] Remove separate results page
-- [x] Test the preview functionality in QuizMaker
-- [x] Verify timer countdown and score display
-- [x] Ensure proper highlighting and disabling after submit
+# TODO: Auto-save AI-generated Flashcards and Quizzes to Library
+
+## Tasks
+- [ ] Modify `StudyBuddy-master/frontend/src/components/Flashcards.jsx` to auto-save AI-generated flashcards after successful generation
+- [ ] Modify `StudyBuddy-master/frontend/src/components/QuizMaker.jsx` to auto-save AI-generated quizzes after successful generation
+
+## Followup Steps
+- [ ] Test AI flashcard generation and verify it appears in History page
+- [ ] Test AI quiz generation and verify it appears in History page
+- [ ] Verify no errors occur during auto-save process

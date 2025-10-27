@@ -19,60 +19,150 @@ const NotesGenerator = () => {
     const [selectedNote, setSelectedNote] = useState(null);
 
     const subjects = [
-        // Core Academic Subjects
-        'Mathematics', 'Physics', 'Chemistry', 'Biology', 'English', 'History', 'Geography',
-        'Economics', 'Political Science', 'Sociology', 'Psychology', 'Philosophy', 'Literature',
-        'Environmental Science', 'Art', 'Music', 'Physical Education', 'Health Education',
-
-        // Computer Science and Programming
-        'Computer Science', 'Programming Languages', 'Algorithms', 'Data Structures',
-        'Database Management Systems', 'Operating Systems', 'Computer Networks',
-        'Software Engineering', 'Web Development', 'Mobile Development', 'Cybersecurity',
-        'Artificial Intelligence', 'Machine Learning', 'Data Science', 'Cloud Computing',
-        'Blockchain', 'Internet of Things (IoT)', 'Game Development', 'DevOps',
-        'Discrete Mathematics', 'Theory of Computation', 'Compiler Design', 'Computer Graphics',
-        'Human-Computer Interaction', 'Information Systems', 'Software Testing',
-
-        // Programming Languages
-        'Python', 'JavaScript', 'Java', 'C++', 'C#', 'Ruby', 'PHP', 'Swift', 'Kotlin',
-        'Go', 'Rust', 'TypeScript', 'R', 'MATLAB', 'Scala', 'Perl', 'Haskell', 'Lua',
-        'Assembly Language', 'SQL', 'HTML/CSS', 'Bash/Shell Scripting',
-
-        // Engineering
-        'Mechanical Engineering', 'Electrical Engineering', 'Civil Engineering',
-        'Chemical Engineering', 'Aerospace Engineering', 'Biomedical Engineering',
-        'Computer Engineering', 'Industrial Engineering', 'Materials Science',
-
-        // Business and Finance
-        'Business Studies', 'Finance', 'Accounting', 'Marketing', 'Management',
-        'Entrepreneurship', 'International Business', 'Supply Chain Management',
-        'Human Resources', 'Operations Management',
-
-        // Medicine and Health Sciences
-        'Medicine', 'Nursing', 'Pharmacology', 'Anatomy', 'Physiology', 'Microbiology',
-        'Pathology', 'Public Health', 'Dentistry', 'Veterinary Science',
-
-        // Law and Legal Studies
-        'Law', 'Criminal Justice', 'International Law', 'Constitutional Law',
-        'Corporate Law', 'Environmental Law', 'Human Rights Law',
-
-        // Social Sciences and Humanities
-        'Anthropology', 'Archaeology', 'Linguistics', 'Religious Studies',
-        'Ethics', 'Cultural Studies', 'Gender Studies', 'Media Studies',
-
-        // Sciences
-        'Astronomy', 'Geology', 'Oceanography', 'Meteorology', 'Ecology',
-        'Genetics', 'Biochemistry', 'Organic Chemistry', 'Inorganic Chemistry',
-        'Physical Chemistry', 'Quantum Physics', 'Thermodynamics',
-
-        // Arts and Design
-        'Fine Arts', 'Graphic Design', 'Fashion Design', 'Interior Design',
-        'Photography', 'Film Studies', 'Theater', 'Dance', 'Creative Writing',
-
-        // Other Specialized Fields
-        'Agriculture', 'Forestry', 'Urban Planning', 'Education', 'Library Science',
-        'Journalism', 'Public Relations', 'Tourism', 'Hospitality Management',
-        'Sports Science', 'Nutrition', 'Dietetics', 'Statistics', 'Actuarial Science'
+        'Actuarial Science',
+        'Accounting',
+        'Aerospace Engineering',
+        'Agriculture',
+        'Algorithms',
+        'Anatomy',
+        'Anthropology',
+        'Archaeology',
+        'Art',
+        'Artificial Intelligence',
+        'Assembly Language',
+        'Astronomy',
+        'Bash/Shell Scripting',
+        'Biochemistry',
+        'Biology',
+        'Biomedical Engineering',
+        'Blockchain',
+        'Business Studies',
+        'C',
+        'C#',
+        'C++',
+        'Chemistry',
+        'Chemical Engineering',
+        'Civil Engineering',
+        'Cloud Computing',
+        'Compiler Design',
+        'Computer Engineering',
+        'Computer Graphics',
+        'Computer Networks',
+        'Computer Science',
+        'Constitutional Law',
+        'Corporate Law',
+        'Creative Writing',
+        'Criminal Justice',
+        'Cultural Studies',
+        'Cybersecurity',
+        'Dance',
+        'Data Science',
+        'Data Structures',
+        'Database Management Systems',
+        'Dentistry',
+        'DevOps',
+        'Dietetics',
+        'Discrete Mathematics',
+        'Ecology',
+        'Economics',
+        'Education',
+        'Electrical Engineering',
+        'English',
+        'Entrepreneurship',
+        'Environmental Law',
+        'Environmental Science',
+        'Ethics',
+        'Fashion Design',
+        'Film Studies',
+        'Finance',
+        'Fine Arts',
+        'Forestry',
+        'Game Development',
+        'Gender Studies',
+        'Genetics',
+        'Geology',
+        'Geography',
+        'Go',
+        'Graphic Design',
+        'Haskell',
+        'Health Education',
+        'History',
+        'Hospitality Management',
+        'HTML/CSS',
+        'Human Resources',
+        'Human Rights Law',
+        'Human-Computer Interaction',
+        'Industrial Engineering',
+        'Information Systems',
+        'Inorganic Chemistry',
+        'International Business',
+        'International Law',
+        'Internet of Things (IoT)',
+        'Java',
+        'JavaScript',
+        'Journalism',
+        'Kotlin',
+        'Law',
+        'Library Science',
+        'Linguistics',
+        'Literature',
+        'Lua',
+        'Machine Learning',
+        'Management',
+        'Marketing',
+        'Materials Science',
+        'MATLAB',
+        'Mathematics',
+        'Mechanical Engineering',
+        'Media Studies',
+        'Medicine',
+        'Meteorology',
+        'Microbiology',
+        'Mobile Development',
+        'Music',
+        'Nursing',
+        'Nutrition',
+        'Oceanography',
+        'Operations Management',
+        'Operating Systems',
+        'Organic Chemistry',
+        'Pathology',
+        'Perl',
+        'Pharmacology',
+        'Philosophy',
+        'Photography',
+        'Physical Chemistry',
+        'Physical Education',
+        'Physics',
+        'Physiology',
+        'Political Science',
+        'Programming Languages',
+        'Psychology',
+        'Public Health',
+        'Public Relations',
+        'Python',
+        'Quantum Physics',
+        'R',
+        'Religious Studies',
+        'Ruby',
+        'Rust',
+        'Scala',
+        'Sociology',
+        'Software Engineering',
+        'Software Testing',
+        'Sports Science',
+        'SQL',
+        'Statistics',
+        'Supply Chain Management',
+        'Swift',
+        'Theater',
+        'Theory of Computation',
+        'Thermodynamics',
+        'Tourism',
+        'TypeScript',
+        'Urban Planning',
+        'Veterinary Science',
+        'Web Development'
     ];
 
     // Use api utility for generating notes
@@ -102,6 +192,29 @@ const NotesGenerator = () => {
                     setSubject(data.metadata.subject);
                 }
                 setSuccess('Notes generated successfully!');
+
+                // Automatically save the generated notes to library
+                try {
+                    const saveResponse = await api.post('/study-notes', {
+                        title: `Notes on ${topic}`,
+                        content: data.notes,
+                        subject: subject || data.metadata?.subject || 'General',
+                        topic: topic,
+                        type: 'note',
+                        aiGenerated: true
+                    });
+
+                    if (saveResponse.status === 201 || saveResponse.data.success) {
+                        setSuccess('Notes generated and saved to your library!');
+                        // Reload notes history to include the newly saved note
+                        loadNotesHistory();
+                    } else {
+                        setSuccess('Notes generated successfully! (Note: Auto-save failed, please save manually)');
+                    }
+                } catch (saveErr) {
+                    console.error('Auto-save failed:', saveErr);
+                    setSuccess('Notes generated successfully! (Note: Auto-save failed, please save manually)');
+                }
             } else {
                 setError(data.error || 'Failed to generate notes');
             }

@@ -16,6 +16,7 @@ import QuizList from "./components/QuizList";
 import QuizTaker from "./components/QuizTaker";
 import QuizEnvironment from "./components/QuizEnvironment";
 import NotesGenerator from "./components/NotesGenerator";
+import History from "./pages/History";
 import Footer from "./components/Footer";
 import Layout from "./components/Layout";
 
@@ -34,6 +35,7 @@ const App = () => {
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/chat" element={<ChatInterface />} />
               <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/history" element={<History />} />
               <Route path="/quiz-maker" element={<QuizMaker />} />
               <Route path="/quizzes" element={<QuizList />} />
               <Route path="/quiz/:id" element={<QuizTakerWrapper />} />

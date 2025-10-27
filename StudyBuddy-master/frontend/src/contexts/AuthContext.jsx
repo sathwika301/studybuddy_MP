@@ -91,7 +91,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUserProgress = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/auth/progress');
+      const response = await axios.get(`http://localhost:5000/api/auth/${user.email}/learning-progress`);
       setUserProgress(response.data.progress);
       return response.data.progress;
     } catch (error) {

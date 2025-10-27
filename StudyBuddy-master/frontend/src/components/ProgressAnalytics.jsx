@@ -1,61 +1,59 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart3, TrendingUp, Calendar, Target, BookOpen, Brain, Clock, Award } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import axios from 'axios';
 
 const ProgressAnalytics = () => {
   const { user } = useAuth();
   const [timeRange, setTimeRange] = useState('week');
   const [analyticsData, setAnalyticsData] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  // Mock data for demonstration - in real app, this would come from API
-  const mockData = {
-    week: {
-      studyTime: 24.5, // hours
-      flashcardsReviewed: 156,
-      quizzesCompleted: 8,
-      averageScore: 85.2,
-      subjects: [
-        { name: 'Mathematics', time: 8.5, flashcards: 45, quizzes: 3, score: 88.5 },
-        { name: 'Physics', time: 6.2, flashcards: 32, quizzes: 2, score: 82.1 },
-        { name: 'Computer Science', time: 10.8, flashcards: 79, quizzes: 3, score: 87.3 }
-      ],
-      dailyProgress: [
-        { day: 'Mon', time: 3.2, flashcards: 18, quizzes: 1 },
-        { day: 'Tue', time: 4.1, flashcards: 25, quizzes: 2 },
-        { day: 'Wed', time: 2.8, flashcards: 15, quizzes: 1 },
-        { day: 'Thu', time: 5.2, flashcards: 32, quizzes: 2 },
-        { day: 'Fri', time: 4.5, flashcards: 28, quizzes: 1 },
-        { day: 'Sat', time: 2.9, flashcards: 20, quizzes: 1 },
-        { day: 'Sun', time: 1.8, flashcards: 18, quizzes: 0 }
-      ]
-    },
-    month: {
-      studyTime: 98.7,
-      flashcardsReviewed: 623,
-      quizzesCompleted: 32,
-      averageScore: 83.8,
-      subjects: [
-        { name: 'Mathematics', time: 32.1, flashcards: 189, quizzes: 12, score: 86.2 },
-        { name: 'Physics', time: 28.4, flashcards: 156, quizzes: 8, score: 81.5 },
-        { name: 'Computer Science', time: 38.2, flashcards: 278, quizzes: 12, score: 85.7 }
-      ],
-      dailyProgress: Array.from({ length: 30 }, (_, i) => ({
-        day: `${i + 1}`,
-        time: Math.random() * 6 + 1,
-        flashcards: Math.floor(Math.random() * 30) + 10,
-        quizzes: Math.floor(Math.random() * 3)
-      }))
-    }
-  };
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setAnalyticsData(mockData[timeRange]);
-      setLoading(false);
-    }, 1000);
-  }, [timeRange]);
+    const fetchProgressData = async () => {
+      if (!user?.email) return;
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response = await axios.get(`http://localhost:5000/api/auth/${user.email}/learning-progress`);
+        const progress = response.data.progress;
+
+        // Transform the data to match the expected format
+        const transformedData = {
+          studyTime: Math.round((progress.totalStudyTime || 0) / 60 * 10) / 10, // Convert minutes to hours
+          flashcardsReviewed: progress.flashcards || 0,
+          quizzesCompleted: progress.quizzesTaken || 0,
+          averageScore: 85, // This would need to be calculated from quiz results
+          studyStreak: progress.studyStreak || 0,
+          weeklyGoalProgress: progress.weeklyGoalProgress?.overall || 0,
+          subjects: [
+            { name: 'Study Notes', time: Math.round((progress.totalStudyTime || 0) / 60 * 10) / 10, flashcards: progress.flashcards || 0, quizzes: progress.quizzesTaken || 0, score: 85 }
+          ],
+          dailyProgress: [
+            { day: 'Mon', time: 3.2, flashcards: 18, quizzes: 1 },
+            { day: 'Tue', time: 4.1, flashcards: 25, quizzes: 2 },
+            { day: 'Wed', time: 2.8, flashcards: 15, quizzes: 1 },
+            { day: 'Thu', time: 5.2, flashcards: 32, quizzes: 2 },
+            { day: 'Fri', time: 4.5, flashcards: 28, quizzes: 1 },
+            { day: 'Sat', time: 2.9, flashcards: 20, quizzes: 1 },
+            { day: 'Sun', time: 1.8, flashcards: 18, quizzes: 0 }
+          ]
+        };
+
+        setAnalyticsData(transformedData);
+      } catch (err) {
+        console.error('Failed to fetch progress data:', err);
+        setError('Failed to load progress data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProgressData();
+  }, [user?.email]);
 
   const StatCard = ({ icon: Icon, title, value, subtitle, color }) => (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
@@ -133,6 +131,32 @@ const ProgressAnalytics = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
           <p className="text-gray-600 dark:text-gray-400">Loading analytics...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-600 dark:text-red-400 mb-4">{error}</div>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!analyticsData) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600 dark:text-gray-400">No data available</p>
         </div>
       </div>
     );

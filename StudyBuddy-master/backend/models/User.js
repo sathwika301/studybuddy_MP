@@ -62,6 +62,55 @@ const userSchema = new mongoose.Schema({
         type: Number,
         default: 0
       }
+    },
+    lastActiveDate: {
+      type: Date,
+      default: Date.now
+    },
+    weeklyGoals: {
+      notes: {
+        type: Number,
+        default: 5 // Default: 5 notes per week
+      },
+      quizzes: {
+        type: Number,
+        default: 3 // Default: 3 quizzes per week
+      },
+      flashcards: {
+        type: Number,
+        default: 10 // Default: 10 flashcards per week
+      },
+      studyTime: {
+        type: Number,
+        default: 300 // Default: 300 minutes (5 hours) per week
+      }
+    },
+    completedTasks: {
+      notesThisWeek: {
+        type: Number,
+        default: 0
+      },
+      quizzesThisWeek: {
+        type: Number,
+        default: 0
+      },
+      flashcardsThisWeek: {
+        type: Number,
+        default: 0
+      },
+      studyTimeThisWeek: {
+        type: Number,
+        default: 0
+      },
+      weekStartDate: {
+        type: Date,
+        default: () => {
+          const now = new Date();
+          const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+          const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1); // Monday as start
+          return new Date(now.setDate(diff));
+        }
+      }
     }
   },
   avatar: {
@@ -82,6 +131,53 @@ const userSchema = new mongoose.Schema({
       type: Boolean,
       default: true
     }
+  },
+  history: {
+    notes: [{
+      contentId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'StudyNote'
+      },
+      title: String,
+      topic: String,
+      subject: String,
+      content: String,
+      generatedAt: {
+        type: Date,
+        default: Date.now
+      },
+      difficulty: String
+    }],
+    quizzes: [{
+      contentId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Quiz'
+      },
+      title: String,
+      topic: String,
+      subject: String,
+      questionsCount: Number,
+      generatedAt: {
+        type: Date,
+        default: Date.now
+      },
+      difficulty: String
+    }],
+    flashcards: [{
+      contentId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Flashcard'
+      },
+      title: String,
+      topic: String,
+      subject: String,
+      cardsCount: Number,
+      generatedAt: {
+        type: Date,
+        default: Date.now
+      },
+      difficulty: String
+    }]
   }
 }, {
   timestamps: true

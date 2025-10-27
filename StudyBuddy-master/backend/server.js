@@ -10,6 +10,7 @@ const authRoutes = require('./routes/authRoutes');
 const studyNoteRoutes = require('./routes/studyNoteRoutes');
 const quizRoutes = require('./routes/quizRoutes');
 const flashcardRoutes = require('./routes/flashcardRoutes');
+const historyRoutes = require('./routes/historyRoutes');
 const resourceRoutes = require('./routes/resourceRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const channelRoutes = require('./routes/channelRoutes');
@@ -50,9 +51,11 @@ app.use('/uploads', express.static('uploads'));
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/user', authRoutes); // For learning progress endpoint
 app.use('/api/study-notes', studyNoteRoutes);
 app.use('/api/quizzes', quizRoutes);
 app.use('/api/flashcards', flashcardRoutes);
+app.use('/api/history', historyRoutes);
 app.use('/api/resources', resourceRoutes);
 app.use('/api/channels', channelRoutes);
 app.use('/api/chat', chatRoutes);
